@@ -1,0 +1,23 @@
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 60px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+div {
+  display: flex;
+  gap: 24px;
+}
+
+a {
+  text-decoration: none;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+h2 {
+  color: #2563eb;
+}
