@@ -1,59 +1,94 @@
-<section class="bg-white py-24">
-  <div class="mx-auto max-w-7xl px-6">
-    <h2 class="text-center text-4xl font-bold text-slate-900">Ask CivicLens AI</h2>
+<section class="bg-white py-16 sm:py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-    <p class="mt-4 text-center text-lg text-slate-600">
-      Search any protest, bill, law, policy or current issue.
-    </p>
+    <!-- Heading -->
+    <div class="text-center">
+      <p class="text-sm font-semibold uppercase tracking-wider text-blue-600">
+        Explore Civic Knowledge
+      </p>
 
+      <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+        Ask CivicLens AI
+      </h2>
+
+      <p class="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+        Search any protest, bill, law, policy or current issue.
+      </p>
+    </div>
+
+    <!-- Search box -->
     <div
-      class="mx-auto mt-10 flex max-w-7xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all duration-300-all duration-300-all duration-300 hover:shadow-blue-100"
+      class="mx-auto mt-8 flex max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl transition duration-300 focus-within:border-blue-300 focus-within:shadow-2xl sm:flex-row"
     >
+
       <input
         type="text"
         [(ngModel)]="searchText"
-        placeholder="Explain NEP 2020 for a Class 8 student..."
-        class="flex-1 px-6 py-5 text-lg outline-none"
+        (keyup.enter)="search()"
+        placeholder="Try: Explain GST for a Class 8 student..."
+        class="min-w-0 flex-1 px-5 py-4 text-base text-slate-800 outline-none placeholder:text-slate-400 sm:px-6 sm:py-5 sm:text-lg"
       />
 
       <button
+        type="button"
         (click)="search()"
-        class="rounded-xl bg-blue-600 px-8 py-4 font-semibold text-white transition hover:bg-blue-700"
+        class="m-2 rounded-xl bg-blue-600 px-6 py-3.5 font-semibold text-white shadow-sm transition duration-300 hover:bg-blue-700 sm:m-2 sm:px-8"
       >
         Search
       </button>
+
     </div>
 
-    <div class="mt-8 flex flex-wrap justify-center gap-3">
-      <button
-        class="rounded-full bg-slate-100 px-5 py-2 text-sm font-medium text-slate-700 transition-all duration-300-all duration-300 hover:bg-blue-100 hover:text-blue-600"
-      >
-        GST
-      </button>
+    <!-- Popular searches -->
+    <div class="mt-7">
+      <p class="mb-3 text-center text-sm font-medium text-slate-500">
+        Popular searches
+      </p>
 
-      <button
-        class="rounded-full bg-slate-100 px-5 py-2 text-sm font-medium text-slate-700 transition-all duration-300-all duration-300 hover:bg-blue-100 hover:text-blue-600"
-      >
-        NEP 2020
-      </button>
+      <div class="flex flex-wrap justify-center gap-2.5">
 
-      <button
-        class="rounded-full bg-slate-100 px-5 py-2 text-sm font-medium text-slate-700 transition-all duration-300-all duration-300 hover:bg-blue-100 hover:text-blue-600"
-      >
-        Farmers Protest
-      </button>
+        <button
+          type="button"
+          (click)="searchText = 'GST'; search()"
+          class="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition duration-200 hover:bg-blue-100 hover:text-blue-600"
+        >
+          GST
+        </button>
 
-      <button
-        class="rounded-full bg-slate-100 px-5 py-2 text-sm font-medium text-slate-700 transition-all duration-300-all duration-300 hover:bg-blue-100 hover:text-blue-600"
-      >
-        Waqf Bill
-      </button>
+        <button
+          type="button"
+          (click)="searchText = 'NEP 2020'; search()"
+          class="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition duration-200 hover:bg-blue-100 hover:text-blue-600"
+        >
+          NEP 2020
+        </button>
 
-      <button
-        class="rounded-full bg-slate-100 px-5 py-2 text-sm font-medium text-slate-700 transition-all duration-300-all duration-300 hover:bg-blue-100 hover:text-blue-600"
-      >
-        Uniform Civil Code
-      </button>
+        <button
+          type="button"
+          (click)="searchText = 'Farmers Protest'; search()"
+          class="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition duration-200 hover:bg-blue-100 hover:text-blue-600"
+        >
+          Farmers Protest
+        </button>
+
+        <button
+          type="button"
+          (click)="searchText = 'Waqf Bill'; search()"
+          class="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition duration-200 hover:bg-blue-100 hover:text-blue-600"
+        >
+          Waqf Bill
+        </button>
+
+        <button
+          type="button"
+          (click)="searchText = 'Uniform Civil Code'; search()"
+          class="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition duration-200 hover:bg-blue-100 hover:text-blue-600"
+        >
+          Uniform Civil Code
+        </button>
+
+      </div>
     </div>
+
   </div>
 </section>

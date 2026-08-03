@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SearchService } from '../../../../core/services/search';
 
 @Component({
@@ -12,17 +12,20 @@ import { SearchService } from '../../../../core/services/search';
 export class SearchResults {
   topics: any[] = [];
   allTopics: any[] = [];
+  searchText = '';
 
   constructor(
     private searchService: SearchService,
     private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.allTopics = this.searchService.getTopics();
 
     this.route.queryParams.subscribe((params) => {
       console.log('Params:', params);
 
-      const searchText = (params['q'] || '').toLowerCase();
+      this.searchText = params['q'] || '';
+      const searchText = this.searchText.toLowerCase();
 
       console.log('Search Text:', searchText);
 
@@ -40,4 +43,7 @@ export class SearchResults {
       console.log('Filtered Topics:', this.topics);
     });
   }
+  openTopic(id: string) {
+  this.router.navigate(['/topic', id]);
+}
 }

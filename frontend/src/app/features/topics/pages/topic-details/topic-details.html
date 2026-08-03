@@ -1,1 +1,298 @@
-<p>topic-details works!</p>
+<section class="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+
+  <div class="mx-auto max-w-4xl">
+
+    @if (topic) {
+
+      <!-- Back -->
+      <button
+        type="button"
+        (click)="goBackToResults()"
+        class="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:-translate-x-1 hover:text-blue-700 sm:mb-8"
+      >
+        ← Back to results
+      </button>
+
+
+      <!-- Main Article -->
+      <article
+        class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+      >
+
+        <!-- Article Header -->
+        <div class="border-b border-slate-200 px-6 py-8 sm:px-8 sm:py-10 md:px-12">
+
+          <!-- Category -->
+          <div class="flex flex-wrap items-center gap-3">
+
+            <span
+              class="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-600"
+            >
+              {{ topic.category }}
+            </span>
+
+            <span class="text-sm text-slate-500">
+              ⏱ {{ topic.readTime }} read
+            </span>
+
+          </div>
+
+
+          <!-- Title -->
+          <h1
+            class="mt-5 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl md:text-5xl"
+          >
+            {{ topic.title }}
+          </h1>
+
+
+          <!-- Intro -->
+          <p class="mt-5 text-base leading-8 text-slate-600 sm:text-lg">
+            {{ topic.summary }}
+          </p>
+
+        </div>
+
+
+        <!-- Article Content -->
+        <div class="px-6 py-8 sm:px-8 sm:py-10 md:px-12">
+
+
+          <!-- What is it? -->
+          <section>
+
+            <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">
+              What is {{ topic.title }}?
+            </h2>
+
+            <p class="mt-4 text-base leading-8 text-slate-600 sm:text-lg">
+              {{ topic.summary }}
+            </p>
+
+          </section>
+
+
+          <!-- Why it matters -->
+          <section class="mt-10">
+
+            <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">
+              Why does it matter?
+            </h2>
+
+            <p class="mt-4 leading-8 text-slate-600">
+              {{ topic.whyItMatters }}
+            </p>
+
+          </section>
+
+
+          <!-- Key Points -->
+          <section class="mt-10">
+
+            <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">
+              Key points
+            </h2>
+
+            <div class="mt-5 space-y-3">
+
+              @for (point of topic.keyPoints; track point) {
+
+                <div
+                  class="flex gap-3 rounded-xl bg-slate-50 p-4"
+                >
+
+                  <span
+                    class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600"
+                  >
+                    ✓
+                  </span>
+
+                  <p class="leading-7 text-slate-600">
+                    {{ point }}
+                  </p>
+
+                </div>
+
+              }
+
+            </div>
+
+          </section>
+
+
+          <!-- Viewpoints -->
+          <section class="mt-10">
+
+            <div>
+              <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">
+                Different viewpoints
+              </h2>
+
+              <p class="mt-2 text-sm text-slate-500">
+                CivicLens presents different perspectives so you can understand the debate.
+              </p>
+            </div>
+
+
+            <div class="mt-5 space-y-4">
+
+              @for (viewpoint of topic.viewpoints; track viewpoint.side) {
+
+                <div
+                  class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6"
+                >
+
+                  <h3 class="font-bold text-slate-900">
+                    {{ viewpoint.side }}
+                  </h3>
+
+                  <p class="mt-2 leading-7 text-slate-600">
+                    {{ viewpoint.explanation }}
+                  </p>
+
+                </div>
+
+              }
+
+            </div>
+
+          </section>
+
+
+          <!-- Current Situation -->
+          <section class="mt-10">
+
+            <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">
+              Current situation
+            </h2>
+
+            <div
+              class="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-5 sm:p-6"
+            >
+
+              <p class="leading-8 text-slate-700">
+                {{ topic.currentSituation }}
+              </p>
+
+            </div>
+
+          </section>
+
+
+          <!-- Sources -->
+          <section class="mt-10">
+
+            <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">
+              Sources
+            </h2>
+
+            <p class="mt-2 text-sm text-slate-500">
+              Learn more from the references used for this topic.
+            </p>
+
+
+            <div class="mt-5 space-y-3">
+
+              @for (source of topic.sources; track source.url) {
+
+                <a
+                  [href]="source.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center justify-between rounded-xl border border-slate-200 p-4 text-sm font-medium text-blue-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                >
+
+                  <span class="pr-4">
+                    {{ source.name }}
+                  </span>
+
+                  <span class="shrink-0">
+                    ↗
+                  </span>
+
+                </a>
+
+              }
+
+            </div>
+
+          </section>
+
+
+          <!-- AI Section -->
+          <section
+            class="mt-12 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white sm:p-8"
+          >
+
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+
+              <div>
+
+                <p class="text-sm font-semibold text-blue-100">
+                  ✨ Personalize your learning
+                </p>
+
+                <h2 class="mt-2 text-2xl font-bold">
+                  Want this explained more simply?
+                </h2>
+
+                <p class="mt-2 max-w-xl text-sm leading-6 text-blue-100">
+                  Ask CivicLens AI to explain this topic based on your age and
+                  understanding level.
+                </p>
+
+              </div>
+
+
+              <button
+                type="button"
+                (click)="explainWithAI()"
+                class="shrink-0 rounded-xl bg-white px-6 py-3.5 font-semibold text-blue-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-50"
+              >
+                ✨ Explain with AI
+              </button>
+
+            </div>
+
+          </section>
+
+        </div>
+
+      </article>
+
+    } @else {
+
+      <!-- Not Found -->
+      <div
+        class="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm"
+      >
+
+        <div
+          class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-3xl"
+        >
+          🔍
+        </div>
+
+        <h1 class="mt-6 text-2xl font-bold text-slate-900 sm:text-3xl">
+          Topic not found
+        </h1>
+
+        <p class="mx-auto mt-3 max-w-md leading-7 text-slate-600">
+          We couldn't find the topic you're looking for.
+        </p>
+
+        <button
+          type="button"
+          (click)="goBackToResults()"
+          class="mt-6 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+        >
+          ← Back to results
+        </button>
+
+      </div>
+
+    }
+
+  </div>
+
+</section>

@@ -7,4 +7,16 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   templateUrl: './navbar.html',
 })
-export class NavbarComponent {}
+export class NavbarComponent {
+
+  mobileMenuOpen = false;
+
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.mobileMenuOpen = false;
+  }
+
+}
