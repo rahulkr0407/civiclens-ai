@@ -1,33 +1,50 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute} from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SearchService } from '../../../../core/services/search';
+import { Topic } from '../../../../core/models/topic';
 
 @Component({
   selector: 'app-topic-details',
   standalone: true,
-  imports: [],
   templateUrl: './topic-details.html',
-  styleUrl: './topic-details.scss',
 })
-export class TopicDetails {
-  topic: any;
+export class TopicDetailsComponent implements OnInit {
+
+  topic: Topic | undefined;
+  searchText = '';
 
   constructor(
     private route: ActivatedRoute,
-    private searchService: SearchService,
-  ) {
+    private router: Router,
+    private searchService: SearchService
+  ) {}
+
+  ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
 
-    this.topic = this.searchService.getTopics().find(
-      (topic) => topic.id === id
-    );
+    this.searchText = this.route.snapshot.queryParamMap.get('q') ?? '';
+
+    if (!id) {
+      return;
+    }
+
+    this.searchService.getTopics().subscribe({
+      next: (topics) => {
+        this.topic = topics.find(
+          (topic: Topic) => topic.id === id
+        );
+      },
+      error: (error) => {
+        console.error('Failed to load topic:', error);
+      },
+    });
   }
 
-  goBackToResults() {
+ goBackToResults() {
   window.history.back();
 }
 
-  explainWithAI() {
-    console.log('Explain with AI clicked for:', this.topic.title);
+  explainWithAI(): void {
+    console.log('AI explanation coming soon...');
   }
 }

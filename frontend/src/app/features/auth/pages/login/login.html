@@ -1,0 +1,237 @@
+<div class="login-page">
+
+  <!-- LEFT HERO -->
+  <section class="hero-panel">
+
+    <!-- Background decorations -->
+    <div class="glow glow-one"></div>
+    <div class="glow glow-two"></div>
+
+    <!-- Brand -->
+    <a routerLink="/" class="brand">
+      <span class="brand-icon">C</span>
+      <span>CivicLens <strong>AI</strong></span>
+    </a>
+
+    <div class="hero-content">
+
+      <span class="eyebrow">
+        Learn more. Question better.
+      </span>
+
+      <h1>
+        Understand the world
+        <span>around you.</span>
+      </h1>
+
+      <p>
+        CivicLens helps you understand protests, laws, policies,
+        education and important civic issues — simply, neutrally,
+        and clearly.
+      </p>
+
+      <!-- Floating topic cards -->
+
+      <div class="floating-card card-education">
+        <span class="card-icon">📚</span>
+        <div>
+          <strong>Education</strong>
+          <small>Learn without confusion</small>
+        </div>
+      </div>
+
+      <div class="floating-card card-government">
+        <span class="card-icon">🏛️</span>
+        <div>
+          <strong>Government</strong>
+          <small>Know how it works</small>
+        </div>
+      </div>
+
+      <div class="floating-card card-law">
+        <span class="card-icon">⚖️</span>
+        <div>
+          <strong>Law & Policy</strong>
+          <small>See different viewpoints</small>
+        </div>
+      </div>
+
+      <!-- Decorative orbit -->
+      <div class="orbit orbit-one"></div>
+      <div class="orbit orbit-two"></div>
+
+    </div>
+
+    <div class="hero-footer">
+      Built for curious minds. <span>🇮🇳</span>
+    </div>
+
+  </section>
+
+
+  <!-- RIGHT AUTH -->
+  <section class="auth-panel">
+
+    <div class="auth-container">
+
+      <div class="mobile-brand">
+        <a routerLink="/" class="brand">
+          <span class="brand-icon">C</span>
+          <span>CivicLens <strong>AI</strong></span>
+        </a>
+      </div>
+
+
+      <!-- Heading -->
+      <div class="auth-heading">
+
+        <span class="welcome">
+          Welcome back
+        </span>
+
+        <h2>
+          Sign in to CivicLens
+        </h2>
+
+        <p>
+          Continue exploring topics that matter to you.
+        </p>
+
+      </div>
+
+
+      <!-- Login Form -->
+      <form (ngSubmit)="login()" class="login-form">
+
+        <!-- Email -->
+        <div class="form-group">
+
+          <label for="email">
+            Email address
+          </label>
+
+          <div class="input-wrapper">
+
+            <span class="input-icon">
+              ✉
+            </span>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              [(ngModel)]="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+
+          </div>
+
+        </div>
+
+
+        <!-- Password -->
+        <div class="form-group">
+
+          <div class="password-label">
+
+            <label for="password">
+              Password
+            </label>
+
+            <a href="#" class="forgot">
+              Forgot password?
+            </a>
+
+          </div>
+
+          <div class="input-wrapper">
+
+            <span class="input-icon">
+              🔒
+            </span>
+
+            <input
+              id="password"
+              name="password"
+              [type]="showPassword ? 'text' : 'password'"
+              [(ngModel)]="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePassword()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            >
+              {{ showPassword ? '🙈' : '👁' }}
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Remember -->
+        <label class="remember">
+
+          <input
+            type="checkbox"
+            name="rememberMe"
+            [(ngModel)]="rememberMe"
+          />
+
+          <span class="custom-checkbox"></span>
+
+          <span>Remember me</span>
+
+        </label>
+
+
+        <!-- CTA -->
+        <button
+          type="submit"
+          class="login-button"
+        >
+          <span>Sign In</span>
+          <span class="arrow">→</span>
+        </button>
+
+
+        <!-- Divider -->
+        <div class="divider">
+          <span></span>
+          <p>or continue with</p>
+          <span></span>
+        </div>
+
+
+        <!-- Google -->
+        <button
+          type="button"
+          class="google-button"
+        >
+          <span class="google-icon">G</span>
+          <span>Continue with Google</span>
+        </button>
+
+
+        <!-- Signup -->
+        <p class="signup-text">
+          New to CivicLens?
+          <a routerLink="/signup">
+            Create an account
+          </a>
+        </p>
+
+      </form>
+
+    </div>
+
+  </section>
+
+</div>
