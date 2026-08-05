@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 
-MONGO_URL = "mongodb://localhost:27017"
+MONGO_URL = "mongodb+srv://mrahul2572002:<db_password>@cluster0.2hrsxa6.mongodb.net/?appName=Cluster0"
 
 client = MongoClient(MONGO_URL)
 

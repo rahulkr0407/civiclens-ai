@@ -8,7 +8,7 @@ import { Topic } from '../models/topic';
 })
 export class SearchService {
 
-  private apiUrl = 'http://127.0.0.1:8000/api/topics';
+  private apiUrl = 'https://civiclens-ai-3.onrender.com/api/topics';
 
   constructor(private http: HttpClient) {}
 
