@@ -1,4 +1,4 @@
-from db.database import topics_collection
+from app.db.database import topics_collection
 
 topics = [
     {

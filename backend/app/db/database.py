@@ -1,11 +1,18 @@
+import os
+
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
-MONGO_URL = "mongodb+srv://mrahul2572002:Zzj5kw3KRxGnZNyu@cluster0.2hrsxa6.mongodb.net/?appName=Cluster0"
+load_dotenv()
+
+MONGO_URL = os.getenv("MONGO_URL")
+
+if not MONGO_URL:
+    raise RuntimeError("MONGO_URL is not configured")
 
 client = MongoClient(MONGO_URL)
 
 db = client["civiclens"]
-
 topics_collection = db["topics"]
 
 try:
