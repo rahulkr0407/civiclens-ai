@@ -1,25 +1,19 @@
 <div class="signup-page">
-
   <!-- Animated background -->
   <div class="background-orb orb-one"></div>
   <div class="background-orb orb-two"></div>
   <div class="background-orb orb-three"></div>
 
   <div class="signup-container">
-
     <!-- LEFT BRAND PANEL -->
     <section class="brand-panel">
-
       <a routerLink="/" class="brand-logo">
         <span class="logo-box">C</span>
 
-        <span>
-          CivicLens <strong>AI</strong>
-        </span>
+        <span> CivicLens <strong>AI</strong> </span>
       </a>
 
       <div class="brand-content">
-
         <div class="floating-card card-government">
           🏛️
           <span>Government</span>
@@ -35,9 +29,7 @@
           <span>Law & Policy</span>
         </div>
 
-        <div class="hero-badge">
-          ✨ Learn more. Question better.
-        </div>
+        <div class="hero-badge">✨ Learn more. Question better.</div>
 
         <h1>
           Understand the world
@@ -45,9 +37,8 @@
         </h1>
 
         <p>
-          CivicLens AI helps you understand civic topics,
-          policies, laws and current issues in simple,
-          neutral language.
+          CivicLens AI helps you understand civic topics, policies, laws and current issues in
+          simple, neutral language.
         </p>
 
         <div class="hero-points">
@@ -66,53 +57,45 @@
             Learn at your level
           </div>
         </div>
-
       </div>
-
     </section>
-
 
     <!-- RIGHT SIGNUP PANEL -->
     <section class="form-panel">
-
       <div class="form-wrapper">
-
         <div class="mobile-logo">
           <a routerLink="/" class="brand-logo">
             <span class="logo-box">C</span>
 
-            <span>
-              CivicLens <strong>AI</strong>
-            </span>
+            <span> CivicLens <strong>AI</strong> </span>
           </a>
         </div>
 
         <div class="form-heading">
+          <span class="welcome-text"> 👋 Welcome to CivicLens </span>
 
-          <span class="welcome-text">
-            👋 Welcome to CivicLens
-          </span>
+          <h2>Create your account</h2>
 
-          <h2>
-            Create your account
-          </h2>
-
-          <p>
-            Start exploring topics that matter to you.
-          </p>
-
+          <p>Start exploring topics that matter to you.</p>
         </div>
-
 
         <!-- FORM -->
         <form (ngSubmit)="signup()">
+          @if (errorMessage) {
+            <div class="form-message error-message">
+              {{ errorMessage }}
+            </div>
+          }
+
+          @if (successMessage) {
+            <div class="form-message success-message">
+              {{ successMessage }}
+            </div>
+          }
 
           <!-- Full Name -->
           <div class="field">
-
-            <label for="fullName">
-              Full name
-            </label>
+            <label for="fullName"> Full name </label>
 
             <input
               id="fullName"
@@ -123,16 +106,11 @@
               autocomplete="name"
               required
             />
-
           </div>
-
 
           <!-- Email -->
           <div class="field">
-
-            <label for="email">
-              Email address
-            </label>
+            <label for="email"> Email address </label>
 
             <input
               id="email"
@@ -143,19 +121,13 @@
               autocomplete="email"
               required
             />
-
           </div>
-
 
           <!-- Password -->
           <div class="field">
-
-            <label for="password">
-              Password
-            </label>
+            <label for="password"> Password </label>
 
             <div class="password-wrapper">
-
               <input
                 id="password"
                 name="password"
@@ -174,21 +146,14 @@
               >
                 {{ showPassword ? '🙈' : '👁️' }}
               </button>
-
             </div>
-
           </div>
-
 
           <!-- Confirm Password -->
           <div class="field">
-
-            <label for="confirmPassword">
-              Confirm password
-            </label>
+            <label for="confirmPassword"> Confirm password </label>
 
             <div class="password-wrapper">
-
               <input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -207,19 +172,12 @@
               >
                 {{ showConfirmPassword ? '🙈' : '👁️' }}
               </button>
-
             </div>
-
           </div>
-
 
           <!-- Terms -->
           <label class="terms">
-
-            <input
-              type="checkbox"
-              required
-            />
+            <input type="checkbox" required />
 
             <span>
               I agree to the
@@ -227,21 +185,14 @@
               and
               <a href="#">Privacy Policy</a>.
             </span>
-
           </label>
 
-
           <!-- CTA -->
-          <button
-            type="submit"
-            class="signup-button"
-          >
+          <button type="submit" class="signup-button">
             <span>Create Account</span>
             <span class="arrow">→</span>
           </button>
-
         </form>
-
 
         <!-- Divider -->
         <div class="divider">
@@ -250,29 +201,18 @@
           <span></span>
         </div>
 
-
         <!-- Google -->
-        <button
-          type="button"
-          class="google-button"
-        >
+        <button type="button" class="google-button">
           <span class="google-icon">G</span>
           <span>Continue with Google</span>
         </button>
 
-
         <!-- Login -->
         <p class="login-text">
           Already have an account?
-          <a routerLink="/login">
-            Sign in
-          </a>
+          <a routerLink="/login"> Sign in </a>
         </p>
-
       </div>
-
     </section>
-
   </div>
-
 </div>

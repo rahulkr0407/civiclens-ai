@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import topics,ai
+from app.api.routes import topics, ai, auth
 
 app = FastAPI(
     title="CivicLens AI API",
@@ -25,3 +25,4 @@ app.add_middleware(
 
 app.include_router(topics.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")

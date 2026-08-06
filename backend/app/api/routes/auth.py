@@ -1,0 +1,90 @@
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, EmailStr
+from pwdlib import PasswordHash
+
+from app.db.database import users_collection
+
+
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
+)
+
+# One password hasher used for BOTH signup and login
+password_hash = PasswordHash.recommended()
+
+
+class SignupRequest(BaseModel):
+    fullName: str
+    email: EmailStr
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+@router.post("/signup")
+def signup(user: SignupRequest):
+
+    # Check whether email already exists
+    existing_user = users_collection.find_one({
+        "email": user.email
+    })
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="An account with this email already exists.",
+        )
+
+    # Hash password
+    hashed_password = password_hash.hash(user.password)
+
+    new_user = {
+        "fullName": user.fullName,
+        "email": user.email,
+        "password": hashed_password,
+    }
+
+    users_collection.insert_one(new_user)
+
+    return {
+        "message": "Account created successfully.",
+    }
+
+
+@router.post("/login")
+def login(user: LoginRequest):
+
+    # Find user by email
+    existing_user = users_collection.find_one({
+        "email": user.email
+    })
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password.",
+        )
+
+    # Verify password using the SAME hasher
+    password_valid = password_hash.verify(
+        user.password,
+        existing_user["password"],
+    )
+
+    if not password_valid:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password.",
+        )
+
+    return {
+        "message": "Login successful.",
+        "user": {
+            "fullName": existing_user["fullName"],
+            "email": existing_user["email"],
+        },
+    }
