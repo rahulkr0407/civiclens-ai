@@ -28,7 +28,7 @@ export class LoginComponent {
   errorMessage = '';
   isLoading = false;
 
-  private apiUrl = 'http://127.0.0.1:8000/api/auth';
+  private apiUrl = 'https://civiclens-ai-1-f708.onrender.com/api/auth';
 
   constructor(
     private http: HttpClient,
