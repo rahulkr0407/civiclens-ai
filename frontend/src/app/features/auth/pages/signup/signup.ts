@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 
 @Component({
@@ -22,7 +23,13 @@ export class SignupComponent {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private router: Router) {}
+  private apiUrl =
+    'https://civiclens-ai-1-f708.onrender.com/api/auth';
+
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
   signup(): void {
 
@@ -54,17 +61,43 @@ export class SignupComponent {
       return;
     }
 
-    // Temporary success
-    this.successMessage = 'Account created successfully!';
+    const signupData = {
+      fullName: this.fullName.trim(),
+      email: this.email.trim().toLowerCase(),
+      password: this.password,
+    };
 
-    console.log('Signup:', {
-      fullName: this.fullName,
-      email: this.email,
+    console.log('Signup request:', {
+      fullName: signupData.fullName,
+      email: signupData.email,
     });
 
-    // We'll connect this to FastAPI later
-    setTimeout(() => {
-      this.router.navigate(['/login']);
-    }, 1000);
+    // Send signup request to FastAPI
+    this.http.post(
+      `${this.apiUrl}/signup`,
+      signupData
+    ).subscribe({
+
+      next: (response: any) => {
+
+        console.log('Signup successful:', response);
+
+        this.successMessage =
+          'Account created successfully! Redirecting to login...';
+
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 1000);
+      },
+
+      error: (error) => {
+
+        console.error('Signup failed:', error);
+
+        this.errorMessage =
+          error.error?.detail ||
+          'Unable to create account. Please try again.';
+      }
+    });
   }
 }

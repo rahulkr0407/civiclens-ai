@@ -70,7 +70,7 @@ export class LoginComponent {
           this.isLoading = false;
 
           // Go to home page
-          this.router.navigate(['/']);
+          this.router.navigate(['/home']);
         },
 
         error: (error) => {
