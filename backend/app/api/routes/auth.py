@@ -4,13 +4,11 @@ from pwdlib import PasswordHash
 
 from app.db.database import users_collection
 
-
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
 )
 
-# One password hasher used for BOTH signup and login
 password_hash = PasswordHash.recommended()
 
 
@@ -25,10 +23,36 @@ class LoginRequest(BaseModel):
     password: str
 
 
+# @router.post("/signup")
+# def signup(user: SignupRequest):
+
+#     existing_user = users_collection.find_one({
+#         "email": user.email
+#     })
+
+#     if existing_user:
+#         raise HTTPException(
+#             status_code=400,
+#             detail="An account with this email already exists.",
+#         )
+
+#     hashed_password = password_hash.hash(user.password)
+
+#     users_collection.insert_one({
+#         "fullName": user.fullName,
+#         "email": user.email,
+#         "password": hashed_password,
+#     })
+
+#     return {
+#         "message": "Account created successfully."
+#     }
+
 @router.post("/signup")
 def signup(user: SignupRequest):
 
-    # Check whether email already exists
+    print("SIGNUP DATA:", user)
+
     existing_user = users_collection.find_one({
         "email": user.email
     })
@@ -39,26 +63,31 @@ def signup(user: SignupRequest):
             detail="An account with this email already exists.",
         )
 
-    # Hash password
     hashed_password = password_hash.hash(user.password)
 
-    new_user = {
+    result = users_collection.insert_one({
         "fullName": user.fullName,
         "email": user.email,
         "password": hashed_password,
-    }
+    })
 
-    users_collection.insert_one(new_user)
+    print("INSERTED ID:", result.inserted_id)
+
+    saved_user = users_collection.find_one({
+        "_id": result.inserted_id
+    })
+
+    print("SAVED USER:", saved_user)
 
     return {
-        "message": "Account created successfully.",
+        "message": "Signup successful",
+        "user_id": str(result.inserted_id)
     }
 
 
 @router.post("/login")
 def login(user: LoginRequest):
 
-    # Find user by email
     existing_user = users_collection.find_one({
         "email": user.email
     })
@@ -66,19 +95,18 @@ def login(user: LoginRequest):
     if not existing_user:
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password.",
+            detail="Invalid email or password."
         )
 
-    # Verify password using the SAME hasher
     password_valid = password_hash.verify(
         user.password,
-        existing_user["password"],
+        existing_user["password"]
     )
 
     if not password_valid:
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password.",
+            detail="Invalid email or password."
         )
 
     return {
