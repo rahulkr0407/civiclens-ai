@@ -13,7 +13,6 @@ if not MONGO_URL:
 client = MongoClient(MONGO_URL)
 
 db = client["civiclens"]
-
 topics_collection = db["topics"]
 users_collection = db["users"]
 
