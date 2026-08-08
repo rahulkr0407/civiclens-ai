@@ -12,11 +12,18 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class SignupComponent {
 
+  // Account details
   fullName = '';
   email = '';
   password = '';
   confirmPassword = '';
 
+  // Learning profile
+  age: number | null = null;
+  educationLevel = '';
+  interests: string[] = [];
+
+  // UI state
   showPassword = false;
   showConfirmPassword = false;
 
@@ -37,67 +44,112 @@ export class SignupComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
-    // Validate name
+    // -------------------------
+    // Validate account details
+    // -------------------------
+
     if (!this.fullName.trim()) {
       this.errorMessage = 'Please enter your full name.';
       return;
     }
 
-    // Validate email
     if (!this.email.trim()) {
       this.errorMessage = 'Please enter your email address.';
       return;
     }
 
-    // Validate password
     if (this.password.length < 6) {
       this.errorMessage = 'Password must be at least 6 characters.';
       return;
     }
 
-    // Confirm password
     if (this.password !== this.confirmPassword) {
       this.errorMessage = 'Passwords do not match.';
       return;
     }
 
+    // -------------------------
+    // Validate learning profile
+    // -------------------------
+
+    if (this.age === null || this.age < 10 || this.age > 100) {
+      this.errorMessage = 'Please enter a valid age.';
+      return;
+    }
+
+    if (!this.educationLevel) {
+      this.errorMessage = 'Please select your education level.';
+      return;
+    }
+
+    if (this.interests.length === 0) {
+      this.errorMessage = 'Please select at least one interest.';
+      return;
+    }
+
+    // -------------------------
+    // Prepare request
+    // -------------------------
+
     const signupData = {
       fullName: this.fullName.trim(),
       email: this.email.trim().toLowerCase(),
       password: this.password,
+
+      age: this.age,
+      educationLevel: this.educationLevel,
+      interests: this.interests,
     };
 
     console.log('Signup request:', {
       fullName: signupData.fullName,
       email: signupData.email,
+      age: signupData.age,
+      educationLevel: signupData.educationLevel,
+      interests: signupData.interests,
     });
 
-    // Send signup request to FastAPI
-    this.http.post(
-      `${this.apiUrl}/signup`,
-      signupData
-    ).subscribe({
+    // -------------------------
+    // Send request to FastAPI
+    // -------------------------
 
-      next: (response: any) => {
+    this.http
+      .post(`${this.apiUrl}/signup`, signupData)
+      .subscribe({
 
-        console.log('Signup successful:', response);
+        next: (response) => {
 
-        this.successMessage =
-          'Account created successfully! Redirecting to login...';
+          console.log('Signup successful:', response);
 
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 1000);
-      },
+          this.successMessage =
+            'Account created successfully! Redirecting to login...';
 
-      error: (error) => {
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 1000);
+        },
 
-        console.error('Signup failed:', error);
+        error: (error) => {
 
-        this.errorMessage =
-          error.error?.detail ||
-          'Unable to create account. Please try again.';
-      }
-    });
+          console.error('Signup failed:', error);
+
+          this.errorMessage =
+            error.error?.detail ||
+            'Unable to create account. Please try again.';
+        },
+      });
   }
+ toggleInterest(interest: string, event: Event): void {
+  const checkbox = event.target as HTMLInputElement;
+
+  if (checkbox.checked) {
+    if (!this.interests.includes(interest)) {
+      this.interests.push(interest);
+    }
+  } else {
+    this.interests = this.interests.filter(
+      item => item !== interest
+    );
+  }
+}
 }

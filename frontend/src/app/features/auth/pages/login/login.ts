@@ -8,6 +8,9 @@ interface LoginResponse {
   user: {
     fullName: string;
     email: string;
+    age: number;
+    educationLevel: string;
+    interests: string[];
   };
 }
 

@@ -1,0 +1,79 @@
+@if (user) {
+
+  <section class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <div
+      class="overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6 shadow-sm sm:p-8"
+    >
+
+      <!-- Greeting -->
+      <div>
+        <p class="text-sm font-medium text-blue-600">
+          Your CivicLens learning profile
+        </p>
+
+        <h2 class="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">
+          Hi, {{ user.fullName }} 👋
+        </h2>
+
+        <p class="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
+          Let's help you understand civic topics at your level.
+        </p>
+      </div>
+
+
+      <!-- Profile information -->
+      <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+        <!-- Age -->
+        <div class="rounded-2xl bg-white p-4 shadow-sm">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Age
+          </p>
+
+          <p class="mt-1 text-lg font-semibold text-slate-900">
+            {{ user.age }}
+          </p>
+        </div>
+
+
+        <!-- Education -->
+        <div class="rounded-2xl bg-white p-4 shadow-sm">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Education
+          </p>
+
+          <p class="mt-1 text-lg font-semibold text-slate-900">
+            {{ user.educationLevel }}
+          </p>
+        </div>
+
+
+        <!-- Interests -->
+        <div class="rounded-2xl bg-white p-4 shadow-sm sm:col-span-2 lg:col-span-1">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Your interests
+          </p>
+
+          <div class="mt-2 flex flex-wrap gap-2">
+
+            @for (interest of user.interests; track interest) {
+
+              <span
+                class="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700"
+              >
+                {{ interest }}
+              </span>
+
+            }
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+}

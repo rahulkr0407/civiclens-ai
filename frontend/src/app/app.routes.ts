@@ -8,11 +8,11 @@ import { LoginComponent } from './features/auth/pages/login/login';
 import { SignupComponent } from './features/auth/pages/signup/signup';
 
 export const routes: Routes = [
-  // Default page → Login
+
+  // Home page
   {
     path: '',
-    redirectTo: 'login',
-    pathMatch: 'full',
+    component: HomeComponent,
   },
 
   {
@@ -30,6 +30,7 @@ export const routes: Routes = [
     component: TopicDetailsComponent,
   },
 
+  // Authentication
   {
     path: 'login',
     component: LoginComponent,
@@ -39,4 +40,5 @@ export const routes: Routes = [
     path: 'signup',
     component: SignupComponent,
   },
+
 ];

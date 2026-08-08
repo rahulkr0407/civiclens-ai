@@ -175,6 +175,118 @@
             </div>
           </div>
 
+          <!-- Learning Profile -->
+          <div class="profile-section">
+            <div class="profile-heading">
+              <h3>Tell us about yourself</h3>
+              <p>This helps CivicLens explain topics at your level.</p>
+            </div>
+
+            <!-- Age -->
+            <div class="field">
+              <label for="age">Your age</label>
+
+              <input
+                id="age"
+                name="age"
+                type="number"
+                [(ngModel)]="age"
+                placeholder="e.g. 20"
+                min="10"
+                max="100"
+                required
+              />
+            </div>
+
+            <!-- Education Level -->
+            <div class="field">
+              <label for="educationLevel">Education level</label>
+
+              <select
+                id="educationLevel"
+                name="educationLevel"
+                [(ngModel)]="educationLevel"
+                required
+              >
+                <option value="" disabled>Select your education level</option>
+                <option value="school">School</option>
+                <option value="higher_secondary">Higher Secondary</option>
+                <option value="undergraduate">Undergraduate</option>
+                <option value="postgraduate">Postgraduate</option>
+                <option value="working_professional">Working Professional</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <!-- Interests -->
+            <!-- Interests -->
+            <div class="field interests-field">
+              <label class="section-label">What are you interested in?</label>
+
+              <div class="interest-grid">
+                <label class="interest-option">
+                  <input
+                    type="checkbox"
+                    name="interest-government"
+                    value="government"
+                    (change)="toggleInterest('government', $event)"
+                  />
+                  <span>🏛️ Government</span>
+                </label>
+
+                <label class="interest-option">
+                  <input
+                    type="checkbox"
+                    name="interest-education"
+                    value="education"
+                    (change)="toggleInterest('education', $event)"
+                  />
+                  <span>📚 Education</span>
+                </label>
+
+                <label class="interest-option">
+                  <input
+                    type="checkbox"
+                    name="interest-law"
+                    value="law"
+                    (change)="toggleInterest('law', $event)"
+                  />
+                  <span>⚖️ Laws & Policy</span>
+                </label>
+
+                <label class="interest-option">
+                  <input
+                    type="checkbox"
+                    name="interest-politics"
+                    value="politics"
+                    (change)="toggleInterest('politics', $event)"
+                  />
+                  <span>🏛️ Politics</span>
+                </label>
+
+                <label class="interest-option">
+                  <input
+                    type="checkbox"
+                    name="interest-economy"
+                    value="economy"
+                    (change)="toggleInterest('economy', $event)"
+                  />
+                  <span>💰 Economy</span>
+                </label>
+
+                <label class="interest-option">
+                  <input
+                    type="checkbox"
+                    name="interest-social"
+                    value="social"
+                    (change)="toggleInterest('social', $event)"
+                  />
+                  <span>🤝 Social Issues</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
           <!-- Terms -->
           <label class="terms">
             <input type="checkbox" required />
