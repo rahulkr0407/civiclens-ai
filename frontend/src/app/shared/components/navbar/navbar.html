@@ -1,16 +1,11 @@
 <nav class="border-b border-slate-200 bg-white">
-
-  <div
-    class="mx-auto flex min-h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
-  >
-
+  <div class="mx-auto flex min-h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
     <!-- Logo -->
     <a
       routerLink="/home"
       (click)="closeMobileMenu()"
       class="flex min-w-0 items-center gap-2 sm:gap-3"
     >
-
       <div
         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-lg font-bold text-white shadow-md sm:h-11 sm:w-11 sm:rounded-xl sm:text-xl"
       >
@@ -18,69 +13,40 @@
       </div>
 
       <div class="min-w-0">
-
-        <span
-          class="block truncate text-base font-semibold text-blue-600 sm:text-lg"
-        >
+        <span class="block truncate text-base font-semibold text-blue-600 sm:text-lg">
           CivicLens AI
         </span>
 
-        <p class="hidden text-xs text-slate-500 sm:block">
-          Understand India Better
-        </p>
-
+        <p class="hidden text-xs text-slate-500 sm:block">Understand India Better</p>
       </div>
-
     </a>
-
 
     <!-- Desktop Navigation -->
     <div class="hidden items-center gap-8 md:flex lg:gap-10">
-
       <!-- Home -->
-      <a
-        routerLink="/home"
-        class="font-medium text-slate-600 transition hover:text-blue-600"
-      >
+      <a routerLink="/home" class="font-medium text-slate-600 transition hover:text-blue-600">
         Home
       </a>
 
       <!-- Topics -->
-      <span
-        class="cursor-not-allowed font-medium text-slate-400"
-        title="Coming soon"
-      >
+      <a routerLink="/topics" class="font-medium text-slate-600 transition hover:text-blue-600">
         Topics
-      </span>
+      </a>
 
       <!-- Sources -->
-      <span
-        class="cursor-not-allowed font-medium text-slate-400"
-        title="Coming soon"
-      >
+      <span class="cursor-not-allowed font-medium text-slate-400" title="Coming soon">
         Sources
       </span>
 
       <!-- About -->
-      <span
-        class="cursor-not-allowed font-medium text-slate-400"
-        title="Coming soon"
-      >
-        About
-      </span>
-
+      <span class="cursor-not-allowed font-medium text-slate-400" title="Coming soon"> About </span>
     </div>
-
 
     <!-- Desktop Actions -->
     <div class="hidden items-center gap-3 md:flex">
-
       @if (isLoggedIn && user) {
-
         <!-- User Greeting -->
-        <span class="px-2 font-medium text-slate-700">
-          Hi, {{ user.fullName }}
-        </span>
+        <span class="px-2 font-medium text-slate-700"> Hi, {{ user.fullName }} </span>
 
         <!-- Start Learning -->
         <a
@@ -98,9 +64,7 @@
         >
           Logout
         </button>
-
       } @else {
-
         <!-- Login -->
         <a
           routerLink="/login"
@@ -116,11 +80,8 @@
         >
           Start Learning
         </a>
-
       }
-
     </div>
-
 
     <!-- Mobile Menu Button -->
     <button
@@ -130,9 +91,7 @@
       [attr.aria-label]="mobileMenuOpen ? 'Close menu' : 'Open menu'"
       [attr.aria-expanded]="mobileMenuOpen"
     >
-
       @if (!mobileMenuOpen) {
-
         <!-- Hamburger -->
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -142,15 +101,9 @@
           stroke="currentColor"
           stroke-width="2"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M4 6h16M4 12h16M4 18h16"
-          />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
-
       } @else {
-
         <!-- Close -->
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -160,27 +113,16 @@
           stroke="currentColor"
           stroke-width="2"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M6 18L18 6M6 6l12 12"
-          />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
-
       }
-
     </button>
-
   </div>
-
 
   <!-- Mobile Menu -->
   @if (mobileMenuOpen) {
-
     <div class="border-t border-slate-200 bg-white px-4 py-4 md:hidden">
-
       <div class="flex flex-col gap-1">
-
         <!-- Home -->
         <a
           routerLink="/home"
@@ -190,44 +132,31 @@
           Home
         </a>
 
-
         <!-- Topics -->
-        <span
-          class="cursor-not-allowed rounded-lg px-4 py-3 font-medium text-slate-400"
+        <a
+          routerLink="/topics"
+          (click)="closeMobileMenu()"
+          class="font-medium text-slate-600 transition hover:text-blue-600"
         >
           Topics
-        </span>
-
+        </a>
 
         <!-- Sources -->
-        <span
-          class="cursor-not-allowed rounded-lg px-4 py-3 font-medium text-slate-400"
-        >
+        <span class="cursor-not-allowed rounded-lg px-4 py-3 font-medium text-slate-400">
           Sources
         </span>
 
-
         <!-- About -->
-        <span
-          class="cursor-not-allowed rounded-lg px-4 py-3 font-medium text-slate-400"
-        >
+        <span class="cursor-not-allowed rounded-lg px-4 py-3 font-medium text-slate-400">
           About
         </span>
-
 
         <!-- Divider -->
         <div class="my-2 border-t border-slate-200"></div>
 
-
         @if (isLoggedIn && user) {
-
           <!-- User Greeting -->
-          <div
-            class="rounded-lg px-4 py-3 font-medium text-slate-700"
-          >
-            Hi, {{ user.fullName }}
-          </div>
-
+          <div class="rounded-lg px-4 py-3 font-medium text-slate-700">Hi, {{ user.fullName }}</div>
 
           <!-- Start Learning -->
           <a
@@ -238,7 +167,6 @@
             Start Learning
           </a>
 
-
           <!-- Logout -->
           <button
             type="button"
@@ -247,9 +175,7 @@
           >
             Logout
           </button>
-
         } @else {
-
           <!-- Login -->
           <a
             routerLink="/login"
@@ -259,7 +185,6 @@
             Login
           </a>
 
-
           <!-- Start Learning -->
           <a
             routerLink="/signup"
@@ -268,13 +193,8 @@
           >
             Start Learning
           </a>
-
         }
-
       </div>
-
     </div>
-
   }
-
 </nav>

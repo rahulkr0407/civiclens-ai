@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './features/home/pages/home/home';
 import { SearchResultsComponent } from './features/search/pages/search-results/search-results';
 import { TopicDetailsComponent } from './features/topics/pages/topic-details/topic-details';
+import { TopicsComponent } from './features/topics/pages/topics/topics';
 
 import { LoginComponent } from './features/auth/pages/login/login';
 import { SignupComponent } from './features/auth/pages/signup/signup';
@@ -16,10 +17,16 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
 
-  // Home page
+  // Home
   {
     path: 'home',
     component: HomeComponent,
+  },
+
+  // Topics
+  {
+    path: 'topics',
+    component: TopicsComponent,
   },
 
   // Search

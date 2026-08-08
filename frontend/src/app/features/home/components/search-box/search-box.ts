@@ -15,12 +15,19 @@ export class SearchBoxComponent {
 
   constructor(private router: Router) {}
 
-  search() {
+  search(): void {
+
+    const query = this.searchText.trim();
+
+    // Don't search if the box is empty
+    if (!query) {
+      return;
+    }
+
     this.router.navigate(['/search'], {
       queryParams: {
-        q: this.searchText,
+        q: query,
       },
     });
   }
-
 }
