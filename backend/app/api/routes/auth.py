@@ -4,18 +4,27 @@ from pwdlib import PasswordHash
 
 from app.db.database import users_collection
 
+
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
 )
 
+
 password_hash = PasswordHash.recommended()
 
+
+# =========================
+# Request Models
+# =========================
 
 class SignupRequest(BaseModel):
     fullName: str
     email: EmailStr
     password: str
+    age: int
+    educationLevel: str
+    interests: list[str]
 
 
 class LoginRequest(BaseModel):
@@ -23,9 +32,14 @@ class LoginRequest(BaseModel):
     password: str
 
 
+# =========================
+# SIGNUP
+# =========================
+
 @router.post("/signup")
 def signup(user: SignupRequest):
 
+    # Check if email already exists
     existing_user = users_collection.find_one({
         "email": user.email
     })
@@ -36,18 +50,29 @@ def signup(user: SignupRequest):
             detail="An account with this email already exists.",
         )
 
+    # Hash password
     hashed_password = password_hash.hash(user.password)
 
+    # Save user
     users_collection.insert_one({
         "fullName": user.fullName,
         "email": user.email,
         "password": hashed_password,
+
+        # Learning profile
+        "age": user.age,
+        "educationLevel": user.educationLevel,
+        "interests": user.interests,
     })
 
     return {
         "message": "Account created successfully."
     }
 
+
+# =========================
+# LOGIN
+# =========================
 
 @router.post("/login")
 def login(user: LoginRequest):
@@ -78,5 +103,8 @@ def login(user: LoginRequest):
         "user": {
             "fullName": existing_user["fullName"],
             "email": existing_user["email"],
+            "age": existing_user.get("age"),
+            "educationLevel": existing_user.get("educationLevel"),
+            "interests": existing_user.get("interests", []),
         },
     }
