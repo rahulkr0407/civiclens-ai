@@ -9,22 +9,26 @@ import { SignupComponent } from './features/auth/pages/signup/signup';
 
 export const routes: Routes = [
 
-  // Home page
+  // Root URL → Login page
   {
     path: '',
-    component: HomeComponent,
+    redirectTo: 'login',
+    pathMatch: 'full',
   },
 
+  // Home page
   {
     path: 'home',
     component: HomeComponent,
   },
 
+  // Search
   {
     path: 'search',
     component: SearchResultsComponent,
   },
 
+  // Topic details
   {
     path: 'topic/:id',
     component: TopicDetailsComponent,
@@ -41,4 +45,9 @@ export const routes: Routes = [
     component: SignupComponent,
   },
 
+  // Unknown URL → Login
+  {
+    path: '**',
+    redirectTo: 'login',
+  },
 ];
