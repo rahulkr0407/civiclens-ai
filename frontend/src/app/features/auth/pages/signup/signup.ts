@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
+import { API_BASE_URL } from '../../../../core/services/api-config';
 
 @Component({
   selector: 'app-signup',
@@ -30,8 +31,7 @@ export class SignupComponent {
   errorMessage = '';
   successMessage = '';
 
-  private apiUrl =
-    'https://civiclens-ai-1-f708.onrender.com/api/auth';
+  private apiUrl = `${API_BASE_URL}/auth`;
 
   constructor(
     private http: HttpClient,

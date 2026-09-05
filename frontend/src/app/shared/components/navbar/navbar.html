@@ -34,12 +34,14 @@
       </a>
 
       <!-- Sources -->
-      <span class="cursor-not-allowed font-medium text-slate-400" title="Coming soon">
+      <a routerLink="/sources" class="font-medium text-slate-600 transition hover:text-blue-600">
         Sources
-      </span>
+      </a>
 
       <!-- About -->
-      <span class="cursor-not-allowed font-medium text-slate-400" title="Coming soon"> About </span>
+      <a routerLink="/about" class="font-medium text-slate-600 transition hover:text-blue-600">
+        About
+      </a>
     </div>
 
     <!-- Desktop Actions -->
@@ -142,14 +144,22 @@
         </a>
 
         <!-- Sources -->
-        <span class="cursor-not-allowed rounded-lg px-4 py-3 font-medium text-slate-400">
+        <a
+          routerLink="/sources"
+          (click)="closeMobileMenu()"
+          class="rounded-lg px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-100 hover:text-blue-600"
+        >
           Sources
-        </span>
+        </a>
 
         <!-- About -->
-        <span class="cursor-not-allowed rounded-lg px-4 py-3 font-medium text-slate-400">
+        <a
+          routerLink="/about"
+          (click)="closeMobileMenu()"
+          class="rounded-lg px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-100 hover:text-blue-600"
+        >
           About
-        </span>
+        </a>
 
         <!-- Divider -->
         <div class="my-2 border-t border-slate-200"></div>

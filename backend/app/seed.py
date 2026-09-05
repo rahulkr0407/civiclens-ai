@@ -35,6 +35,14 @@ topics = [
             {
                 "name": "GST Council — Government of India",
                 "url": "https://www.gstcouncil.gov.in/"
+            },
+            {
+                "name": "GST Portal — Goods and Services Tax Network",
+                "url": "https://www.gst.gov.in/"
+            },
+            {
+                "name": "CBIC — Central Board of Indirect Taxes and Customs",
+                "url": "https://www.cbic.gov.in/"
             }
         ]
     },
@@ -71,7 +79,11 @@ topics = [
         "sources": [
             {
                 "name": "National Education Policy 2020 — Ministry of Education",
-                "url": "https://www.education.gov.in/nep-national-education-policy-2020"
+                "url": "https://www.education.gov.in/en/national-education-policy-2020-0"
+            },
+            {
+                "name": "National Education Policy 2020 (Full Text PDF) — Ministry of Education",
+                "url": "https://www.education.gov.in/sites/upload_files/mhrd/files/NEP_Final_English_0.pdf"
             }
         ]
     },
@@ -109,6 +121,10 @@ topics = [
             {
                 "name": "Farm Laws Repeal Bill, 2021 — PRS Legislative Research",
                 "url": "https://prsindia.org/billtrack/the-farm-laws-repeal-bill-2021"
+            },
+            {
+                "name": "The Farm Laws Repeal Act, 2021 — India Code",
+                "url": "https://www.indiacode.nic.in/handle/123456789/16976"
             }
         ]
     }

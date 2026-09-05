@@ -7,6 +7,8 @@ import { TopicsComponent } from './features/topics/pages/topics/topics';
 
 import { LoginComponent } from './features/auth/pages/login/login';
 import { SignupComponent } from './features/auth/pages/signup/signup';
+import { SourcesComponent } from './features/sources/pages/sources/sources';
+import { AboutComponent } from './features/about/pages/about/about';
 
 export const routes: Routes = [
 
@@ -39,6 +41,18 @@ export const routes: Routes = [
   {
     path: 'topic/:id',
     component: TopicDetailsComponent,
+  },
+
+  // Sources
+  {
+    path: 'sources',
+    component: SourcesComponent,
+  },
+
+  // About
+  {
+    path: 'about',
+    component: AboutComponent,
   },
 
   // Authentication

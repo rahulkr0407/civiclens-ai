@@ -2,7 +2,54 @@
 
   <div class="mx-auto max-w-4xl">
 
-    @if (topic) {
+    <!-- Loading -->
+    @if (loading) {
+
+      <div class="flex min-h-64 items-center justify-center">
+
+        <div
+          class="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"
+        ></div>
+
+      </div>
+
+    }
+
+
+    <!-- Error -->
+    @if (!loading && errorMessage) {
+
+      <div
+        class="rounded-2xl border border-red-200 bg-red-50 px-6 py-16 text-center shadow-sm"
+      >
+
+        <div class="text-3xl">
+          ⚠️
+        </div>
+
+        <h1 class="mt-4 text-2xl font-bold text-red-800">
+          Something went wrong
+        </h1>
+
+        <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-red-600">
+          {{ errorMessage }}
+        </p>
+
+        <button
+          type="button"
+          (click)="goBackToResults()"
+          class="mt-6 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+        >
+          {{ searchText ? '← Back to search results' : '← Back to all topics' }}
+        </button>
+
+      </div>
+
+    }
+
+
+    <!-- Topic -->
+    @if (!loading && !errorMessage && topic) {
 
       <!-- Back -->
       <button
@@ -10,7 +57,7 @@
         (click)="goBackToResults()"
         class="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:-translate-x-1 hover:text-blue-700 sm:mb-8"
       >
-        ← Back to results
+        ← {{ searchText ? 'Back to search results' : 'Back to all topics' }}
       </button>
 
 
@@ -97,9 +144,7 @@
 
               @for (point of topic.keyPoints; track point) {
 
-                <div
-                  class="flex gap-3 rounded-xl bg-slate-50 p-4"
-                >
+                <div class="flex gap-3 rounded-xl bg-slate-50 p-4">
 
                   <span
                     class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600"
@@ -139,10 +184,14 @@
               @for (viewpoint of topic.viewpoints; track viewpoint.side) {
 
                 <div
-                  class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6"
+                  class="rounded-2xl border border-slate-200 border-l-4 border-l-blue-400 bg-slate-50 p-5 sm:p-6"
                 >
 
-                  <h3 class="font-bold text-slate-900">
+                  <p class="text-xs font-bold uppercase tracking-wider text-blue-600">
+                    Viewpoint
+                  </p>
+
+                  <h3 class="mt-1 text-lg font-bold text-slate-900">
                     {{ viewpoint.side }}
                   </h3>
 
@@ -190,7 +239,6 @@
               Learn more from the references used for this topic.
             </p>
 
-
             <div class="mt-5 space-y-3">
 
               @for (source of topic.sources; track source.url) {
@@ -199,18 +247,28 @@
                   [href]="source.url"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="flex items-center justify-between rounded-xl border border-slate-200 p-4 text-sm font-medium text-blue-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                  class="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3.5 transition hover:border-blue-200 hover:bg-blue-50"
                 >
 
-                  <span class="pr-4">
+                  <span class="min-w-0 pr-3 text-sm font-medium text-blue-600 transition group-hover:text-blue-700">
                     {{ source.name }}
                   </span>
 
-                  <span class="shrink-0">
-                    ↗
+                  <span
+                    class="flex shrink-0 items-center justify-center rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-600 transition group-hover:bg-blue-600 group-hover:text-white"
+                  >
+                    Open ↗
                   </span>
 
                 </a>
+
+              }
+
+              @empty {
+
+                <p class="rounded-xl border border-dashed border-slate-200 p-5 text-sm text-slate-500">
+                  No sources are listed for this topic yet.
+                </p>
 
               }
 
@@ -244,25 +302,194 @@
               </div>
 
 
-              <button
-                type="button"
-                (click)="explainWithAI()"
-                class="shrink-0 rounded-xl bg-white px-6 py-3.5 font-semibold text-blue-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-50"
-              >
-                ✨ Explain with AI
-              </button>
+              <div class="shrink-0">
+
+                <button
+                  type="button"
+                  (click)="explainWithAI()"
+                  [disabled]="aiLoading"
+                  class="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-blue-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 sm:w-auto"
+                >
+                  @if (aiLoading) {
+                    <span
+                      class="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+                    ></span>
+                    <span>Explaining…</span>
+                  } @else {
+                    <span>✨ Explain with AI</span>
+                  }
+                </button>
+
+                @if (aiError) {
+
+                  <p class="mt-3 max-w-xs text-sm font-medium leading-6 text-red-100">
+                    {{ aiError }}
+                  </p>
+
+                }
+
+              </div>
 
             </div>
 
           </section>
 
+
+          <!-- AI Result -->
+          @if (aiResult) {
+
+            <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+
+              <div class="flex items-center gap-3">
+
+                <span
+                  class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-lg"
+                >
+                  ✨
+                </span>
+
+                <div>
+
+                  <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">
+                    {{ aiResult.topicTitle }} — AI explanation
+                  </h2>
+
+                  <p class="mt-0.5 text-xs text-slate-500">
+                    Generated for your learning level. Always check the sources below.
+                  </p>
+
+                </div>
+
+              </div>
+
+              <div class="mt-6 space-y-6">
+
+                <div>
+
+                  <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">
+                    In simple terms
+                  </h3>
+
+                  <p class="mt-2 leading-8 text-slate-700">
+                    {{ aiResult.simpleExplanation }}
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">
+                    Why it matters
+                  </h3>
+
+                  <p class="mt-2 leading-8 text-slate-700">
+                    {{ aiResult.whyItMatters }}
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">
+                    Key points
+                  </h3>
+
+                  <div class="mt-3 space-y-3">
+
+                    @for (point of aiResult.keyPoints; track point) {
+
+                      <div class="flex gap-3 rounded-xl bg-slate-50 p-4">
+
+                        <span
+                          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600"
+                        >
+                          ✓
+                        </span>
+
+                        <p class="leading-7 text-slate-600">
+                          {{ point }}
+                        </p>
+
+                      </div>
+
+                    }
+
+                  </div>
+
+                </div>
+
+                <div>
+
+                  <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">
+                    Viewpoints
+                  </h3>
+
+                  <div class="mt-3 space-y-4">
+
+                    @for (viewpoint of aiResult.viewpoints; track viewpoint.side) {
+
+                      <div class="rounded-2xl border border-slate-200 border-l-4 border-l-blue-400 bg-slate-50 p-5">
+
+                        <h4 class="font-bold text-slate-900">
+                          {{ viewpoint.side }}
+                        </h4>
+
+                        <p class="mt-2 leading-7 text-slate-600">
+                          {{ viewpoint.explanation }}
+                        </p>
+
+                      </div>
+
+                    }
+
+                  </div>
+
+                </div>
+
+                <div>
+
+                  <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">
+                    Questions to think about
+                  </h3>
+
+                  <div class="mt-3 space-y-3">
+
+                    @for (question of aiResult.questionsToThinkAbout; track question) {
+
+                      <div class="flex gap-3 rounded-xl bg-blue-50 p-4">
+
+                        <span class="shrink-0 font-bold text-blue-600">
+                          ?
+                        </span>
+
+                        <p class="leading-7 text-slate-700">
+                          {{ question }}
+                        </p>
+
+                      </div>
+
+                    }
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </section>
+
+          }
+
         </div>
 
       </article>
 
-    } @else {
+    }
 
-      <!-- Not Found -->
+
+    <!-- Topic not found -->
+    @if (!loading && !errorMessage && !topic) {
+
       <div
         class="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm"
       >
@@ -278,16 +505,29 @@
         </h1>
 
         <p class="mx-auto mt-3 max-w-md leading-7 text-slate-600">
-          We couldn't find the topic you're looking for.
+          We couldn't find the topic you're looking for. It may have been
+          renamed or removed, or the link may be incorrect.
         </p>
 
-        <button
-          type="button"
-          (click)="goBackToResults()"
-          class="mt-6 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
-        >
-          ← Back to results
-        </button>
+        <div class="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+
+          <button
+            type="button"
+            (click)="goBackToResults()"
+            class="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
+          >
+            ← {{ searchText ? 'Back to search results' : 'Back to all topics' }}
+          </button>
+
+          <button
+            type="button"
+            (click)="browseAllTopics()"
+            class="w-full rounded-xl border border-slate-200 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+          >
+            Browse all topics
+          </button>
+
+        </div>
 
       </div>
 

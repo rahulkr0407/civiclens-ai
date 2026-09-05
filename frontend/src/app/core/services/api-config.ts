@@ -1,0 +1,1 @@
+export const API_BASE_URL = 'https://civiclens-ai-1-f708.onrender.com/api';

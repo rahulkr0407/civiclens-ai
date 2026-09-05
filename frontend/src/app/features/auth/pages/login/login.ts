@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../../../../core/services/api-config';
 
 interface LoginResponse {
   message: string;
@@ -31,7 +32,7 @@ export class LoginComponent {
   errorMessage = '';
   isLoading = false;
 
-  private apiUrl = 'https://civiclens-ai-1-f708.onrender.com/api/auth';
+  private apiUrl = `${API_BASE_URL}/auth`;
 
   constructor(
     private http: HttpClient,

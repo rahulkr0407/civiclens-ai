@@ -1,0 +1,1 @@
+"""Database connection and collections for CivicLens AI backend."""
