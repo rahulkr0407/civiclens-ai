@@ -40,7 +40,7 @@ See `docs/API.md` for the full contract and error codes.
 | Variable | Purpose | Default |
 |---|---|---|
 | `GEMINI_API_KEY` | Gemini Developer API key | required |
-| `GEMINI_MODEL` | Model used for explanations | `gemini-2.5-flash` |
+| `GEMINI_MODEL` | Model used for explanations | `gemini-3.6-flash` |
 
 - The key is read automatically by the `google-genai` client from the
   environment.

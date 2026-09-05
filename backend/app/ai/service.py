@@ -23,8 +23,12 @@ from app.ai.prompts import build_system_prompt, build_user_prompt
 
 GEMINI_API_KEY_ENV = "GEMINI_API_KEY"
 GEMINI_MODEL_ENV = "GEMINI_MODEL"
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 GEMINI_TEMPERATURE = 0.2
+
+
+_HTTP_URL_PATTERN = re.compile(r"https?://\S+", re.IGNORECASE)
+_TRAILING_URL_PUNCTUATION = re.compile(r"[\.,;:!?\)\]\}]+$")
 
 
 # =========================
@@ -41,9 +45,6 @@ class AINotConfiguredError(AIServiceError):
 
 class AIProviderError(AIServiceError):
     """Raised when the AI provider fails (network, quota, invalid response)."""
-
-
-_HTTP_URL_PATTERN = re.compile(r"https?://\S+", re.IGNORECASE)
 
 
 # =========================
@@ -97,36 +98,59 @@ def generate(request: ExplainRequest, topic: dict) -> ExplainResponse:
 # Verification
 # =========================
 
+def _hostname(url: str) -> str:
+    """Return the lowercased host of a URL with a leading 'www.' stripped."""
+    url = _TRAILING_URL_PUNCTUATION.sub("", url.strip())
+    match = re.match(r"https?://([^/]+)", url, re.IGNORECASE)
+    if not match:
+        return ""
+    host = match.group(1).lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return host
+
+
+def _reject(reason: str) -> bool:
+    print(f"[civiclens-ai verify] rejected explanation: {reason}")
+    return False
+
+
 def verify(response: ExplainResponse, topic: dict) -> bool:
     """Check the generated explanation is grounded in the topic material.
 
     Returns True when the response passes all checks:
-    - the topic title matches the requested topic
-    - no URLs appear that are not in the topic's list of official sources
+    - the topic title matches the requested topic (loosely: equal, or one
+      contains the other, so rephrased titles like "Goods and Services Tax
+      (GST)" still map to the stored "GST")
+    - no URLs appear whose host is not one of the topic's official source
+      hosts (trailing slashes, punctuation and a leading 'www.' are ignored)
     - no key point, viewpoint or question is blank
     - there is at least one key point and one viewpoint
     """
-    if response.topicTitle.strip().lower() != str(topic.get("title", "")).strip().lower():
-        return False
+    topic_title = str(topic.get("title", "")).strip().lower()
+    title = response.topicTitle.strip().lower()
+    if not (title == topic_title or topic_title in title or title in topic_title):
+        return _reject("topic title mismatch")
 
-    allowed_urls = {str(s.get("url", "")).strip() for s in topic.get("sources", [])}
+    allowed_hosts = {_hostname(str(s.get("url", ""))) for s in topic.get("sources", [])}
+    allowed_hosts.discard("")
 
     serialized = response.model_dump_json()
     found_urls = set(_HTTP_URL_PATTERN.findall(serialized))
-    invented_urls = found_urls - allowed_urls
-    if invented_urls:
-        return False
+    for url in found_urls:
+        if _hostname(url) not in allowed_hosts:
+            return _reject(f"URL outside official sources: {url}")
 
     if not response.keyPoints or any(not str(p).strip() for p in response.keyPoints):
-        return False
+        return _reject("blank key point")
 
     if not response.viewpoints:
-        return False
+        return _reject("no viewpoints")
     for viewpoint in response.viewpoints:
         if not str(viewpoint.side).strip() or not str(viewpoint.explanation).strip():
-            return False
+            return _reject("blank viewpoint")
 
     if any(not str(q).strip() for q in response.questionsToThinkAbout):
-        return False
+        return _reject("blank question")
 
     return True
