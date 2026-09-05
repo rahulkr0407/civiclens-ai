@@ -1,5 +1,7 @@
 # CivicLens AI — Roadmap
 
+> Resume here: `docs/SESSION-CHECKPOINT.md` (project state, open items, cheatsheet).
+
 ## Phase 1 — Seed & content
 - [x] Mongo topics collection with curated, politically neutral civic topics
 - [x] Verified official sources only (PRS, India Code, MeitY, ECI, Digital India, NPCI)
