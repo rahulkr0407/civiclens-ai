@@ -13,7 +13,13 @@ The prompts are built to guarantee:
 
 from typing import Optional
 
-from app.ai.models import ExplainRequest
+from app.ai.models import ChatMessage, ChatRequest, ExplainRequest
+
+
+def _language_line(language: Optional[str]) -> str:
+    if not language or str(language).strip().lower() in ("english", "en"):
+        return "- Language: English"
+    return f"- Language: {language.strip()}"
 
 
 _SYSTEM_PROMPT = (
@@ -99,6 +105,7 @@ def build_user_prompt(
             f"- Education level: {request.education_level}",
             f"- Interests: {interests}",
             f"- Requested explanation style: {style}",
+            _language_line(request.language),
         ]
     )
 
@@ -110,5 +117,71 @@ def build_user_prompt(
         + "\n\n== LEARNER PROFILE ==\n"
         + learner_profile
         + "\n\nNow produce the explanation using ONLY the topic material above, "
-        "respecting all the rules in your instructions."
+        "respecting all the rules in your instructions. Write the whole "
+        "explanation in the requested language."
+    )
+
+
+_CHAT_SYSTEM_PROMPT = (
+    "You are CivicLens AI, a neutral civic education assistant for India.\n"
+    "You answer follow-up questions about a civic topic in a simple, "
+    "accurate and balanced way.\n\n"
+    "Rules you must follow:\n"
+    "1. Use ONLY the topic material and official references given for the "
+    "topic. Do not add facts, statistics, dates, names or events that are not "
+    "present in that material.\n"
+    "2. Never invent, guess, or fabricate sources. Never create URLs. "
+    "Cite only by referring to the official references provided below.\n"
+    "3. Present every viewpoint neutrally, without favouring any side, and "
+    "make no political position or value judgements.\n"
+    "4. Match the depth and vocabulary to the learner's age and education "
+    "level (given below), without changing the factual meaning.\n"
+    "5. Keep answers concise and readable. If you are unsure whether a fact "
+    "is supported by the material, say so instead of guessing.\n"
+    "6. Answer in the requested language."
+)
+
+
+def build_chat_system_prompt() -> str:
+    return _CHAT_SYSTEM_PROMPT
+
+
+def build_chat_user_prompt(
+    topic: dict,
+    request: ChatRequest,
+    messages: list[ChatMessage],
+) -> str:
+    """Build the chat prompt: topic material once + the recent conversation."""
+    topic_material = "\n".join(
+        [
+            f"Title: {topic.get('title', '')}",
+            f"Category: {topic.get('category', '')}",
+            f"Summary: {topic.get('summary', '')}",
+            f"Why it matters: {topic.get('whyItMatters', '')}",
+            "Key points:",
+            _render_key_points(topic.get("keyPoints", [])),
+            "Viewpoints:",
+            _render_viewpoints(topic.get("viewpoints", [])),
+            f"Current situation: {topic.get('currentSituation', '')}",
+            "Official references used for this topic:",
+            _render_sources(topic.get("sources", [])),
+        ]
+    )
+
+    conversation = "\n".join(
+        f"{message.role.capitalize()}: {message.content}"
+        for message in messages
+    )
+
+    return (
+        "Answer the user's follow-up questions about this civic topic.\n\n"
+        "== TOPIC MATERIAL =="
+        "\n"
+        + topic_material
+        + f"\n\n== LANGUAGE ==\n{_language_line(request.language)}"
+        + "\n\n== CONVERSATION ==\n"
+        + conversation
+        + "\n\nNow continue the conversation above using ONLY the topic "
+        "material, respecting all the rules in your instructions. Answer in "
+        "the requested language."
     )

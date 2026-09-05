@@ -1,7 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { SearchService } from '../../../../core/services/search';
-import { AiService, ExplainRequest, ExplainResponse } from '../../../../core/services/ai';
+import {
+  AiService,
+  ChatMessage,
+  ExplainRequest,
+  ExplainResponse,
+} from '../../../../core/services/ai';
 import { Topic } from '../../../../core/models/topic';
 
 interface LearnerProfile {
@@ -10,9 +16,12 @@ interface LearnerProfile {
   interests: string[];
 }
 
+const LANGUAGE_OPTIONS = ['English', 'Hindi', 'Hinglish'] as const;
+
 @Component({
   selector: 'app-topic-details',
   standalone: true,
+  imports: [FormsModule],
   templateUrl: './topic-details.html',
 })
 export class TopicDetailsComponent implements OnInit {
@@ -26,6 +35,14 @@ export class TopicDetailsComponent implements OnInit {
   aiLoading = false;
   aiError = '';
   aiResult: ExplainResponse | null = null;
+
+  language: (typeof LANGUAGE_OPTIONS)[number] = 'English';
+  languageOptions = LANGUAGE_OPTIONS;
+
+  chatMessages: ChatMessage[] = [];
+  chatInput = '';
+  chatLoading = false;
+  chatError = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -75,6 +92,10 @@ export class TopicDetailsComponent implements OnInit {
     this.router.navigate(['/topics']);
   }
 
+  regenerateExplanation(): void {
+    this.explainWithAI();
+  }
+
   explainWithAI(): void {
     if (!this.topic || this.aiLoading) {
       return;
@@ -91,6 +112,7 @@ export class TopicDetailsComponent implements OnInit {
       age: profile.age,
       education_level: profile.educationLevel,
       interests: profile.interests,
+      language: this.language,
     };
 
     this.aiService.explain(request).subscribe({
@@ -103,6 +125,45 @@ export class TopicDetailsComponent implements OnInit {
         this.aiError = this.mapAiError(error);
       },
     });
+  }
+
+  sendChatMessage(): void {
+    const content = this.chatInput.trim();
+
+    if (!content || !this.topic || this.chatLoading) {
+      return;
+    }
+
+    const userMessage: ChatMessage = { role: 'user', content };
+    this.chatMessages = [...this.chatMessages, userMessage];
+    this.chatInput = '';
+    this.chatLoading = true;
+    this.chatError = '';
+
+    this.aiService
+      .chat({
+        topic_id: this.topic.id,
+        messages: this.chatMessages,
+        language: this.language,
+      })
+      .subscribe({
+        next: (result) => {
+          this.chatMessages = [
+            ...this.chatMessages,
+            { role: 'assistant', content: result.reply },
+          ];
+          this.chatLoading = false;
+        },
+        error: (error) => {
+          this.chatLoading = false;
+          this.chatError = this.mapAiError(error);
+        },
+      });
+  }
+
+  clearChat(): void {
+    this.chatMessages = [];
+    this.chatError = '';
   }
 
   private getLearnerProfile(): LearnerProfile {

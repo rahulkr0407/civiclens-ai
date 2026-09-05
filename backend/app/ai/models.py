@@ -7,7 +7,7 @@ Note: viewpoints mirror the existing Topic model ({side, explanation})
 so the AI output stays consistent with curated topic content.
 """
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -22,6 +22,22 @@ class ExplainRequest(BaseModel):
     education_level: str
     interests: list[str] = Field(default_factory=list)
     style: Optional[str] = None
+    language: str = "English"
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    topic_id: str
+    messages: list[ChatMessage]
+    language: str = "English"
+
+
+class ChatResponse(BaseModel):
+    reply: str
 
 
 # =========================

@@ -127,6 +127,129 @@ topics = [
                 "url": "https://www.indiacode.nic.in/handle/123456789/16976"
             }
         ]
+    },
+
+    {
+        "id": "dpdp-2023",
+        "title": "DPDP Act 2023",
+        "category": "Technology",
+        "summary": "The Digital Personal Data Protection Act 2023 is India's law that sets rules for how organizations collect and process personal data.",
+        "readTime": "6 min",
+
+        "whyItMatters": "The DPDP Act affects the rights of every person online, and the obligations of companies and apps that handle personal data.",
+
+        "keyPoints": [
+            "It applies to the processing of digital personal data in India.",
+            "It requires consent before personal data can be processed for most purposes.",
+            "It gives individuals rights such as access, correction and erasure of their data.",
+            "It sets up a Data Protection Board and penalties for non-compliance."
+        ],
+
+        "viewpoints": [
+            {
+                "side": "Supporters",
+                "explanation": "Supporters say the law strengthens privacy, makes consent central, and gives people more control over their personal data."
+            },
+            {
+                "side": "Critics",
+                "explanation": "Critics have raised concerns about certain exemptions, how the rules will be carried out, and the readiness of organizations to comply."
+            }
+        ],
+
+        "currentSituation": "The Act has been passed, and the rules under it have been published for consultation and implementation.",
+
+        "sources": [
+            {
+                "name": "Digital Personal Data Protection Act 2023 — MeitY, Government of India",
+                "url": "https://www.meity.gov.in/content/digital-personal-data-protection-act-2023"
+            },
+            {
+                "name": "Digital Personal Data Protection Bill — PRS Legislative Research",
+                "url": "https://prsindia.org/billtrack/digital-personal-data-protection-bill-2023"
+            }
+        ]
+    },
+
+    {
+        "id": "upi",
+        "title": "UPI",
+        "category": "Economy",
+        "summary": "Unified Payments Interface (UPI) is an instant payment system that lets people transfer money between bank accounts using mobile apps.",
+        "readTime": "5 min",
+
+        "whyItMatters": "UPI is one of the most widely used ways to pay in India, covering everyday purchases, bills and transfers.",
+
+        "keyPoints": [
+            "UPI allows instant money transfers between bank accounts.",
+            "It works round the clock, including weekends and holidays.",
+            "Users can link multiple bank accounts in one UPI app.",
+            "It supports QR-code payments at shops and online."
+        ],
+
+        "viewpoints": [
+            {
+                "side": "Supporters",
+                "explanation": "Supporters say UPI is convenient, fast and low-cost, and has helped expand digital payments in India."
+            },
+            {
+                "side": "Critics",
+                "explanation": "Critics have raised concerns about digital payment fraud, safety for less experienced users, and access for people without smartphones."
+            }
+        ],
+
+        "currentSituation": "UPI continues to grow in India and is also being enabled for use in other countries.",
+
+        "sources": [
+            {
+                "name": "Unified Payment Interface (UPI) — Digital India, MeitY",
+                "url": "https://www.digitalindia.gov.in/initiative/unified-payment-interface-upi/"
+            },
+            {
+                "name": "UPI Product Overview — National Payments Corporation of India",
+                "url": "https://www.npci.org.in/what-we-do/upi/product-overview"
+            }
+        ]
+    },
+
+    {
+        "id": "electoral-bonds",
+        "title": "Electoral Bonds",
+        "category": "Governance",
+        "summary": "Electoral Bonds were a scheme that allowed donations to political parties through bank bonds, and were struck down by the Supreme Court in 2024.",
+        "readTime": "6 min",
+
+        "whyItMatters": "Political funding affects how democracy and elections work, and who they may depend on for support.",
+
+        "keyPoints": [
+            "Electoral Bonds were introduced in 2018 as a way to donate to political parties.",
+            "Bonds could be bought from a bank and donated without publicly declaring the donor.",
+            "The State Bank of India was the authorised issuer of these bonds.",
+            "In February 2024, the Supreme Court struck down the scheme as unconstitutional."
+        ],
+
+        "viewpoints": [
+            {
+                "side": "Supporters",
+                "explanation": "Supporters argued electoral bonds could reduce cash donations and let donors support parties without fear of targeting."
+            },
+            {
+                "side": "Critics",
+                "explanation": "Critics said anonymous donations reduce transparency and can allow donors to influence political parties in secret."
+            }
+        ],
+
+        "currentSituation": "The scheme has been struck down by the Supreme Court, and information about the bonds was shared with the Election Commission of India.",
+
+        "sources": [
+            {
+                "name": "Electoral Bonds — Election Commission of India",
+                "url": "https://www.eci.gov.in/electoral-bonds"
+            },
+            {
+                "name": "Electoral Bonds General — Election Commission of India",
+                "url": "https://eci.gov.in/general/electoral-bonds"
+            }
+        ]
     }
 ]
 
@@ -139,4 +262,4 @@ for topic in topics:
     )
 
 
-print("✅ All 3 topics updated successfully!")
+print(f"✅ All {len(topics)} topics updated successfully!")

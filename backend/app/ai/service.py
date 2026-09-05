@@ -13,8 +13,13 @@ could be added without touching the route or prompts.
 import os
 import re
 
-from app.ai.models import ExplainRequest, ExplainResponse
-from app.ai.prompts import build_system_prompt, build_user_prompt
+from app.ai.models import ChatRequest, ExplainRequest, ExplainResponse
+from app.ai.prompts import (
+    build_chat_system_prompt,
+    build_chat_user_prompt,
+    build_system_prompt,
+    build_user_prompt,
+)
 
 
 # =========================
@@ -25,6 +30,7 @@ GEMINI_API_KEY_ENV = "GEMINI_API_KEY"
 GEMINI_MODEL_ENV = "GEMINI_MODEL"
 DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 GEMINI_TEMPERATURE = 0.2
+ChatHistory = 6
 
 
 _HTTP_URL_PATTERN = re.compile(r"https?://\S+", re.IGNORECASE)
@@ -89,8 +95,56 @@ def generate(request: ExplainRequest, topic: dict) -> ExplainResponse:
     except AIProviderError:
         raise
     except Exception as exc:
+        print(f"[civiclens-ai] generate() provider error: {type(exc).__name__}: {exc}", flush=True)
         raise AIProviderError(
             f"The AI provider could not generate a valid explanation: {exc}"
+        ) from exc
+
+
+# =========================
+# Follow-up chat
+# =========================
+
+def chat(request: ChatRequest, topic: dict) -> str:
+    """Answer a follow-up question, grounded in the topic material."""
+    api_key = os.getenv(GEMINI_API_KEY_ENV)
+    if not api_key:
+        raise AINotConfiguredError(
+            f"{GEMINI_API_KEY_ENV} is not configured. "
+            "Set it server-side (e.g. Render environment variables)."
+        )
+
+    model = os.getenv(GEMINI_MODEL_ENV, DEFAULT_GEMINI_MODEL)
+    messages = request.messages[-ChatHistory:]
+
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=api_key)
+
+        response = client.models.generate_content(
+            model=model,
+            contents=build_chat_user_prompt(topic, request, messages),
+            config=types.GenerateContentConfig(
+                system_instruction=build_chat_system_prompt(),
+                temperature=GEMINI_TEMPERATURE,
+            ),
+        )
+
+        if not response.text:
+            raise AIProviderError("The AI provider returned an empty response.")
+
+        return response.text.strip()
+
+    except AINotConfiguredError:
+        raise
+    except AIProviderError:
+        raise
+    except Exception as exc:
+        print(f"[civiclens-ai] chat() provider error: {type(exc).__name__}: {exc}", flush=True)
+        raise AIProviderError(
+            f"The AI provider could not answer the question: {exc}"
         ) from exc
 
 
@@ -152,5 +206,18 @@ def verify(response: ExplainResponse, topic: dict) -> bool:
 
     if any(not str(q).strip() for q in response.questionsToThinkAbout):
         return _reject("blank question")
+
+    return True
+
+
+def verify_chat(reply: str, topic: dict) -> bool:
+    """Check a chat reply does not cite URLs outside the topic's official sources."""
+    allowed_hosts = {_hostname(str(s.get("url", ""))) for s in topic.get("sources", [])}
+    allowed_hosts.discard("")
+
+    for url in _HTTP_URL_PATTERN.findall(reply):
+        if _hostname(url) not in allowed_hosts:
+            _reject(f"chat URL outside official sources: {url}")
+            return False
 
     return True

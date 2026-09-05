@@ -3,21 +3,22 @@
 ## Status
 
 - **Phase 5 (design + contracts): complete.**
-- **Phase 6 (implementation): complete** — backend provider, verification,
-  error handling and frontend AI UI are implemented.
-- Pending for end-to-end verification: set `GEMINI_API_KEY` in the Render
-  environment and deploy.
+- **Phase 6 (implementation): complete and deployed** — backend provider,
+  verification, error handling and frontend AI UI are live on Render/Vercel.
+- **Phase 7 (chat + language + resilience): complete** — follow-up chat,
+  language toggle, Regenerate, explain cache, rate-limit messaging and 3 new
+  topics are implemented and deployed.
 
 The AI endpoint contract, prompt construction and service interface are
-designed and in code. The endpoint returns a real Gemini-based explanation
-when `GEMINI_API_KEY` is configured, and a clean `502` when it is not.
+designed and in code. The endpoints return real Gemini-based responses when
+`GEMINI_API_KEY` is configured, and a clean `502` when it is not.
 
 ## Flow
 
 ```
 Frontend ("Explain with AI")
   -> POST /api/ai/explain
-       { topic_id, age, education_level, interests?, style? }
+       { topic_id, age, education_level, interests?, style?, language? }
 Backend
   -> load topic document + its official sources from MongoDB
   -> build grounded prompts (app.ai.prompts)
@@ -29,6 +30,23 @@ Backend
   -> verification pass (app.ai.service.verify)
        re-check claims against the topic's own content and sources only
   -> return ExplainResponse JSON
+```
+
+Follow-up chat uses the same grounding:
+
+```
+Frontend ("Ask a follow-up")
+  -> POST /api/ai/chat
+       { topic_id, messages[{role, content}], language? }
+Backend
+  -> load topic document + official sources from MongoDB
+  -> build chat prompts (app.ai.prompts.build_chat_*)
+       topic material embedded once + recent conversation (last 6 turns)
+  -> call Gemini via google-genai SDK (app.ai.service.chat)
+       plain text output (no JSON schema)
+  -> URL check (app.ai.service.verify_chat)
+       reject any URL whose host is not an official source host
+  -> return { reply }
 ```
 
 ## Request / Response
@@ -75,5 +93,17 @@ route or prompts.
 - [x] Implement `app.ai.service.generate()` using Gemini structured output
   (Pydantic schema) and grounded prompts
 - [x] Implement `app.ai.service.verify()` claim check
-- [ ] Set `GEMINI_API_KEY` (and optional `GEMINI_MODEL`) in Render env
+- [x] Set `GEMINI_API_KEY` and `GEMINI_MODEL` in Render env
 - [x] Frontend: AI service call + loading/error states + explanation result UI
+- [x] Deploy and verify live (`/api/ai/explain` returns 200 with real content)
+
+## Phase 7 checklist
+
+- [x] `ChatRequest`/`ChatResponse` contracts + `app.ai.service.chat()` (plain text, temp 0.2, last 6 turns)
+- [x] `app.ai.service.verify_chat()` URL-host check
+- [x] `POST /api/ai/chat` route with 404/502 mapping
+- [x] Language toggle (English / Hindi / Hinglish) in prompts + UI
+- [x] Regenerate button + in-memory explain cache (10 min TTL, per-instance)
+- [x] Provider error logging in `generate()`/`chat()`
+- [x] Rate-limit friendly `502` message
+- [x] Topics count 3 -> 6 (DPDP Act 2023, UPI, Electoral Bonds)

@@ -9,6 +9,7 @@ export interface ExplainRequest {
   education_level: string;
   interests: string[];
   style?: string;
+  language?: string;
 }
 
 export interface ExplainViewpoint {
@@ -25,6 +26,21 @@ export interface ExplainResponse {
   questionsToThinkAbout: string[];
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatRequest {
+  topic_id: string;
+  messages: ChatMessage[];
+  language?: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -35,6 +51,13 @@ export class AiService {
   explain(request: ExplainRequest): Observable<ExplainResponse> {
     return this.http.post<ExplainResponse>(
       `${API_BASE_URL}/ai/explain`,
+      request
+    );
+  }
+
+  chat(request: ChatRequest): Observable<ChatResponse> {
+    return this.http.post<ChatResponse>(
+      `${API_BASE_URL}/ai/chat`,
       request
     );
   }
