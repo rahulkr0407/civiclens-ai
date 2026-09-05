@@ -98,9 +98,8 @@ Phase 9 production hardening.
 
 Generate an age/education-appropriate, neutral explanation for a topic.
 
-**Status:** contract finalised (Phase 5). The endpoint currently returns a
-**stub** matching the response shape. The real Gemini provider is connected in
-Phase 6.
+**Status:** live (Phase 6–7). Backed by Gemini, verified against the topic's
+official sources, cached in-memory for 10 minutes (same topic + profile).
 
 **Request body:**
 
@@ -110,7 +109,8 @@ Phase 6.
   "age": 16,
   "education_level": "School",
   "interests": ["Economy"],
-  "style": "simple"
+  "style": "simple",
+  "language": "English"
 }
 ```
 
@@ -121,6 +121,7 @@ Phase 6.
 | `education_level` | string | yes | e.g. `School`, `College`, `Professional` |
 | `interests` | array of strings | no | Used to add helpful examples when supported by the material |
 | `style` | string | no | e.g. `simple`, `detailed`; omitted → automatic |
+| `language` | string | no | `English`, `Hindi`, `Hinglish`; default `English` |
 
 **`200`** — `ExplainResponse`:
 
@@ -144,5 +145,51 @@ Phase 6.
 |---|---|
 | `404` | Topic not found (`{ "detail": "Topic not found." }`) |
 | `422` | Validation error (missing/invalid request fields) |
-| `502` | AI provider unavailable or returned invalid output (Phase 6) |
+| `502` | AI provider unavailable, rate-limited, or returned output that failed verification |
 | `500` | Unexpected server error |
+
+---
+
+## `POST /api/ai/chat`
+
+Answer follow-up questions about a topic, grounded in the topic material and
+its official sources. The last 6 conversation turns are sent to the provider.
+
+**Status:** live (Phase 7).
+
+**Request body:**
+
+```json
+{
+  "topic_id": "gst",
+  "messages": [
+    { "role": "user", "content": "What is GST in one sentence?" }
+  ],
+  "language": "English"
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `topic_id` | string | yes | Topic id from `/api/topics` |
+| `messages` | array of `{role, content}` | yes | `role` is `user` or `assistant`; oldest turns beyond the last 6 are trimmed server-side |
+| `language` | string | no | `English`, `Hindi`, `Hinglish`; default `English` |
+
+**`200`:**
+
+```json
+{ "reply": "Goods and Services Tax (GST) is an indirect tax ..." }
+```
+
+**Error codes:**
+
+| Code | Meaning |
+|---|---|
+| `404` | Topic not found |
+| `422` | Empty `messages` or validation error |
+| `502` | AI provider unavailable / rate-limited, or reply cited a URL outside the topic's official sources (rejected by verification) |
+| `500` | Unexpected server error |
+
+**Resilience:** transient provider errors (HTTP 429/5xx) are retried up to
+`GEMINI_MAX_RETRIES` times (default 3) with backoff (5s → 20s → 40s). A live
+`429` (free-tier daily quota) returns a `502` with a rate-limit hint.

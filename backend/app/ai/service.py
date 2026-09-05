@@ -12,6 +12,7 @@ could be added without touching the route or prompts.
 
 import os
 import re
+import time
 
 from app.ai.models import ChatRequest, ExplainRequest, ExplainResponse
 from app.ai.prompts import (
@@ -28,13 +29,18 @@ from app.ai.prompts import (
 
 GEMINI_API_KEY_ENV = "GEMINI_API_KEY"
 GEMINI_MODEL_ENV = "GEMINI_MODEL"
+GEMINI_MAX_RETRIES_ENV = "GEMINI_MAX_RETRIES"
 DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 GEMINI_TEMPERATURE = 0.2
+DEFAULT_MAX_RETRIES = 3
 ChatHistory = 6
 
 
 _HTTP_URL_PATTERN = re.compile(r"https?://\S+", re.IGNORECASE)
 _TRAILING_URL_PUNCTUATION = re.compile(r"[\.,;:!?\)\]\}]+$")
+
+_RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
+_RETRY_BACKOFF_SECONDS = (5.0, 20.0, 40.0)
 
 
 # =========================
@@ -51,6 +57,68 @@ class AINotConfiguredError(AIServiceError):
 
 class AIProviderError(AIServiceError):
     """Raised when the AI provider fails (network, quota, invalid response)."""
+
+    def __init__(self, message: str, status_code: int | None = None):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+# =========================
+# Provider call helpers
+# =========================
+
+def _provider_status_code(exc: Exception) -> int | None:
+    """Best-effort extraction of the HTTP status from a provider exception."""
+    for attr in ("code", "status_code"):
+        value = getattr(exc, attr, None)
+        if value is None:
+            continue
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _is_retryable(exc: Exception) -> bool:
+    return _provider_status_code(exc) in _RETRYABLE_STATUSES
+
+
+def _call_with_retry(fn):
+    """Call ``fn()`` retrying transient provider errors with backoff.
+
+    Only status codes in ``_RETRYABLE_STATUSES`` (quota exhaustion, server
+    errors, ...) are retried; invalid requests and auth errors surface at once.
+    Rate limits (429) get a single short retry so a fast-recovering throttle
+    can succeed without long delays when the daily free-tier cap is the cause.
+    """
+    attempts = int(os.getenv(GEMINI_MAX_RETRIES_ENV, DEFAULT_MAX_RETRIES))
+    last_exc: Exception | None = None
+
+    for attempt in range(1, attempts + 1):
+        try:
+            return fn()
+        except Exception as exc:
+            last_exc = exc
+            code = _provider_status_code(exc)
+            if not _is_retryable(exc):
+                raise
+            if code == 429 and attempt >= 2:
+                raise
+            if attempt >= attempts:
+                raise
+            delay = 5.0 if code == 429 else _RETRY_BACKOFF_SECONDS[
+                min(attempt - 1, len(_RETRY_BACKOFF_SECONDS) - 1)
+            ]
+            print(
+                f"[civiclens-ai] provider status {code} "
+                f"(attempt {attempt}/{attempts}) retrying in {delay:.0f}s",
+                flush=True,
+            )
+            time.sleep(delay)
+
+    assert last_exc is not None
+    raise last_exc
 
 
 # =========================
@@ -74,15 +142,20 @@ def generate(request: ExplainRequest, topic: dict) -> ExplainResponse:
 
         client = genai.Client(api_key=api_key)
 
-        response = client.models.generate_content(
-            model=model,
-            contents=build_user_prompt(topic, request),
-            config=types.GenerateContentConfig(
-                system_instruction=build_system_prompt(),
-                temperature=GEMINI_TEMPERATURE,
-                response_mime_type="application/json",
-                response_json_schema=ExplainResponse.model_json_schema(),
-            ),
+        response = _call_with_retry(
+            lambda: client.models.generate_content(
+                model=model,
+                contents=build_user_prompt(topic, request),
+                config=types.GenerateContentConfig(
+                    system_instruction=build_system_prompt(),
+                    temperature=GEMINI_TEMPERATURE,
+                    response_mime_type="application/json",
+                    response_json_schema=ExplainResponse.model_json_schema(),
+                    automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                        disable=True
+                    ),
+                ),
+            )
         )
 
         if not response.text:
@@ -97,7 +170,8 @@ def generate(request: ExplainRequest, topic: dict) -> ExplainResponse:
     except Exception as exc:
         print(f"[civiclens-ai] generate() provider error: {type(exc).__name__}: {exc}", flush=True)
         raise AIProviderError(
-            f"The AI provider could not generate a valid explanation: {exc}"
+            f"The AI provider could not generate a valid explanation: {exc}",
+            status_code=_provider_status_code(exc),
         ) from exc
 
 
@@ -123,13 +197,18 @@ def chat(request: ChatRequest, topic: dict) -> str:
 
         client = genai.Client(api_key=api_key)
 
-        response = client.models.generate_content(
-            model=model,
-            contents=build_chat_user_prompt(topic, request, messages),
-            config=types.GenerateContentConfig(
-                system_instruction=build_chat_system_prompt(),
-                temperature=GEMINI_TEMPERATURE,
-            ),
+        response = _call_with_retry(
+            lambda: client.models.generate_content(
+                model=model,
+                contents=build_chat_user_prompt(topic, request, messages),
+                config=types.GenerateContentConfig(
+                    system_instruction=build_chat_system_prompt(),
+                    temperature=GEMINI_TEMPERATURE,
+                    automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                        disable=True
+                    ),
+                ),
+            )
         )
 
         if not response.text:
@@ -144,7 +223,8 @@ def chat(request: ChatRequest, topic: dict) -> str:
     except Exception as exc:
         print(f"[civiclens-ai] chat() provider error: {type(exc).__name__}: {exc}", flush=True)
         raise AIProviderError(
-            f"The AI provider could not answer the question: {exc}"
+            f"The AI provider could not answer the question: {exc}",
+            status_code=_provider_status_code(exc),
         ) from exc
 
 

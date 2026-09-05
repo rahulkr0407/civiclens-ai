@@ -59,11 +59,17 @@ See `docs/API.md` for the full contract and error codes.
 |---|---|---|
 | `GEMINI_API_KEY` | Gemini Developer API key | required |
 | `GEMINI_MODEL` | Model used for explanations | `gemini-3.6-flash` |
+| `GEMINI_MAX_RETRIES` | Transient-error retry attempts (429/5xx) | `3` |
 
 - The key is read automatically by the `google-genai` client from the
   environment.
 - Keys must **never** be set in the Angular frontend; they live only as Render
   environment variables.
+- Transient provider errors are retried with backoff (5s → 20s → 40s). A live
+  `429 RESOURCE_EXHAUSTED` for `generate_content_free_tier_requests` means the
+  key's **free-tier daily quota is exhausted** (e.g. 20 requests/day/model) —
+  the API returns a clear `502` with a rate-limit hint until the quota resets
+  or is raised (new project or billing on the key's project).
 
 ## Neutrality and accuracy rules (enforced in the system prompt)
 
@@ -107,3 +113,6 @@ route or prompts.
 - [x] Provider error logging in `generate()`/`chat()`
 - [x] Rate-limit friendly `502` message
 - [x] Topics count 3 -> 6 (DPDP Act 2023, UPI, Electoral Bonds)
+- [x] Retry-with-backoff for transient provider errors (`GEMINI_MAX_RETRIES`)
+- [x] Sharper `502` message for rate limits (429) vs generic outages
+- [x] Disable SDK automatic function calling to remove log noise

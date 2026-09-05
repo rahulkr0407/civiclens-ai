@@ -29,13 +29,17 @@ def _ai_error_response(exc: Exception, action: str) -> HTTPException:
             detail="AI explanations are not configured yet. Please try again later.",
         )
     if isinstance(exc, AIProviderError):
-        return HTTPException(
-            status_code=502,
-            detail=(
+        if exc.status_code == 429:
+            detail = (
+                "The AI service is receiving too many requests right now "
+                "(the free tier is metered). Please wait a minute and try again."
+            )
+        else:
+            detail = (
                 f"The AI service is temporarily unavailable while {action}. "
-                "The free tier is metered, so please wait a minute and retry."
-            ),
-        )
+                "Please try again later."
+            )
+        return HTTPException(status_code=502, detail=detail)
     return HTTPException(
         status_code=500,
         detail=f"Something went wrong {action}.",

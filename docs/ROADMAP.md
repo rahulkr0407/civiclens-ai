@@ -32,6 +32,16 @@
 - [x] 3 new topics: DPDP Act 2023, UPI, Electoral Bonds (6 total)
 - [x] `docs/ROADMAP.md` filled
 
+## Phase 7.5 — Issues & hardening
+- [x] Retry-with-backoff for transient provider errors (`GEMINI_MAX_RETRIES`,
+      429 → 1 quick retry; 5xx → 5s/20s/40s backoff)
+- [x] Sharper 502 messages (rate-limit hint vs generic outage)
+- [x] Real provider-error logging in `generate()`/`chat()`
+- [x] Disable SDK automatic function calling (removes log noise)
+- [x] `docs/API.md` updated (chat contract, `language`, live status)
+- [x] Root cause of live 502s identified: free-tier daily quota
+      (`generate_content_free_tier_requests`, limit 20/model/day on the key)
+
 ## Phase 8 — Ideas (not started)
 - [ ] Dashboard + saved chat/explanation history (users-collection persistence)
 - [ ] Bill Tracker / Protest Tracker
