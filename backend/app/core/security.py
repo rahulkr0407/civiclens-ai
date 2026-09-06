@@ -1,4 +1,6 @@
+import hashlib
 import os
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -13,7 +15,8 @@ load_dotenv()
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRES_MINUTES = int(os.getenv("JWT_EXPIRES_MINUTES", "10080"))
+JWT_EXPIRES_MINUTES = int(os.getenv("JWT_EXPIRES_MINUTES", "60"))
+REFRESH_TOKEN_DAYS = int(os.getenv("REFRESH_TOKEN_DAYS", "30"))
 
 if not JWT_SECRET:
     raise RuntimeError(
@@ -44,6 +47,48 @@ def decode_token(token: str) -> str:
             detail="Invalid or expired token. Please log in again.",
         )
     return payload["sub"]
+
+
+# =========================
+# Refresh tokens
+# =========================
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def generate_refresh_token() -> str:
+    return secrets.token_urlsafe(48)
+
+
+def hash_refresh_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def refresh_token_expiry() -> datetime:
+    return _utc_now() + timedelta(days=REFRESH_TOKEN_DAYS)
+
+
+def is_refresh_token_valid(user: dict, token: str) -> bool:
+    stored = user.get("refreshTokenHash")
+    expires_at = user.get("refreshTokenExpiresAt")
+
+    if not stored or not token:
+        return False
+
+    if not secrets.compare_digest(hash_refresh_token(token), stored):
+        return False
+
+    if not expires_at or _as_utc(expires_at) < _utc_now():
+        return False
+
+    return True
 
 
 def get_current_user(

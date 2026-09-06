@@ -22,26 +22,25 @@
 ## 3. Feature inventory (all working)
 
 - 6 topics (gst, nep-2020, farmers-protest, dpdp-2023, upi, electoral-bonds)
-- `GET /api/topics`; auth signup/login (**JWT now** — `access_token`, `GET /auth/me`)
+- `GET /api/topics`; auth signup/login (**JWT + rotating refresh tokens** — `access_token` 60 min, `refresh_token` 30 days hashed at rest, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`)
 - `POST /api/ai/explain` (JSON schema output, verified, 10-min in-memory cache)
 - `POST /api/ai/chat` (last 6 turns, plain text, URL-checked)
 - Language toggle: English / Hindi / Hinglish (explain + chat)
-- Regenerate button; rate-limit friendly 502s; provider error logging
-- **Dashboard**: per-user saved explanations + conversations (`users_collection.savedHistory`, max 100) — Save buttons on explain/chat, Dashboard page (`/dashboard`), delete/clear
+- Regenerate button; rate-limit friendly 502s (quota-exhaustion message names the cause); provider error logging
+- **Dashboard**: per-user saved explanations + conversations (`users_collection.savedHistory`, max 100) — Save buttons on explain/chat, Dashboard page (`/dashboard`, guarded by `authGuard`), delete/clear
 
 ## 4. Known issues / open items (IMPORTANT)
 
 1. **Free-tier quota: 20 requests/day for gemini-3.6-flash** (`generate_content_free_tier_requests`, limit 20). When exhausted the API returns 502 with a rate-limit hint until reset/raised. This was the root cause of the earlier "intermittent 502s" — NOT a code bug. **The previously leaked GEMINI_API_KEY has been rotated** (new key in a new AI Studio project; set on Render).
-2. **`JWT_SECRET` must be set on Render** (backend service env var) or the API will refuse to start. Local value is in `backend/.env` (not committed). Optional `JWT_EXPIRES_MINUTES` (default 7 days).
+2. **`JWT_SECRET` must be set on Render** (backend service env var) or the API will refuse to start. Local value is in `backend/.env` (not committed). Optional `JWT_EXPIRES_MINUTES` (default **60**) and `REFRESH_TOKEN_DAYS` (default **30**).
 3. Explain cache is in-memory only (resets on redeploy; fine for single instance).
 4. Pre-existing broken unit specs: several `*.spec.ts` import named exports that don't exist (`import { Search }`, `{ Home }`, `{ Navbar }`, …) so `ng test` fails to compile repo-wide. Not touched; `ng build` is the CI gate.
 
 ## 5. Next steps candidates (not started)
 
-- Bill Tracker / Protest Tracker
+- Fix the broken unit specs (`ng test` repo-wide — stale named imports)
 - User-saved topics
-- JWT: access-token refresh / split token→HTTP-only cookie hardening
-- Add a Dashboard route guard (currently the page just prompts to log in if no token)
+- Bill Tracker / Protest Tracker
 
 ## 6. Dev cheatsheet (Windows / PowerShell)
 
@@ -59,7 +58,7 @@ npx ng build
 
 # Render env vars
 MONGO_URL, GEMINI_API_KEY, GEMINI_MODEL, JWT_SECRET
-(optional GEMINI_MAX_RETRIES, default 3; JWT_EXPIRES_MINUTES, default 10080)
+(optional GEMINI_MAX_RETRIES, default 3; JWT_EXPIRES_MINUTES, default 60; REFRESH_TOKEN_DAYS, default 30)
 
 # Local backend smoke (JWT_SECRET is read from backend/.env)
 $env:PYTHONIOENCODING='utf-8'

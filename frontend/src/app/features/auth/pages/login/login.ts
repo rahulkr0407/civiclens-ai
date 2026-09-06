@@ -43,7 +43,11 @@ export class LoginComponent {
 
           console.log('Login successful:', response);
 
-          this.auth.persistSession(response.user, response.access_token);
+          this.auth.persistSession(
+            response.user,
+            response.access_token,
+            response.refresh_token
+          );
 
           this.isLoading = false;
 

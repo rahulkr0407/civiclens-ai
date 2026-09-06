@@ -50,8 +50,13 @@
 - [x] `/api/history` save / list / delete / clear
 - [x] Dashboard page (`/dashboard`) + Save buttons on explain & chat
 
+## Phase 8.5 — JWT hardening (live)
+- [x] Rotating refresh tokens (60-min access, 30-day refresh, hashed at rest, rotation-on-refresh)
+- [x] `POST /auth/refresh` + `POST /auth/logout` (server-side revocation)
+- [x] Frontend auto-refresh on expired-token 401 + retry; `authGuard` on `/dashboard`
+- [x] Sharper 502 message when 429 is the free-tier daily quota
+
 ## Phase 9 — Ideas (not started)
-- [ ] Bill Tracker / Protest Tracker
+- [ ] Fix broken unit specs (`ng test` — stale named imports)
 - [ ] User-saved topics
-- [ ] JWT refresh + HTTP-only cookie hardening
-- [ ] Dashboard route guard
+- [ ] Bill Tracker / Protest Tracker

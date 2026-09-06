@@ -77,6 +77,7 @@ Authenticate a user.
 {
   "message": "Login successful.",
   "access_token": "<jwt>",
+  "refresh_token": "<random>",
   "token_type": "bearer",
   "user": {
     "fullName": "Example User",
@@ -90,10 +91,47 @@ Authenticate a user.
 
 **`401`:** `{ "detail": "Invalid email or password." }`
 
-The `access_token` is a JWT (HS256). Send it on protected routes as
-`Authorization: Bearer <token>`. The frontend stores it in `localStorage`
-alongside the `user` object and attaches it automatically via an HTTP
-interceptor. Token lifetime defaults to 7 days (`JWT_EXPIRES_MINUTES`).
+The `access_token` is a JWT (HS256) valid for 60 minutes
+(`JWT_EXPIRES_MINUTES`). The `refresh_token` is a random 256-bit value valid
+for 30 days (`REFRESH_TOKEN_DAYS`); only its SHA-256 hash is stored server-side.
+Send `Authorization: Bearer <token>` on protected routes. The frontend stores
+both tokens in `localStorage` and transparently refreshes on an expired-token
+`401` via the HTTP interceptor.
+
+---
+
+## `POST /api/auth/refresh`
+
+Exchange a valid refresh token for a fresh pair. The old refresh token is
+**rotated** (revoked) on success.
+
+**Request body:**
+
+```json
+{ "refresh_token": "<refresh_token>" }
+```
+
+**`200`:**
+
+```json
+{
+  "access_token": "<new jwt>",
+  "refresh_token": "<new refresh token>",
+  "token_type": "bearer"
+}
+```
+
+**`401`:** invalid, revoked, or expired refresh token
+(`{ "detail": "Your session has expired. Please log in again." }`). **`422`** if
+the field is missing/invalid.
+
+---
+
+## `POST /api/auth/logout`
+
+Revoke the given refresh token (sign out on the server so the token can't be
+reused). **Request body:** `{ "refresh_token": "<token>" }` — `200` even if the
+token was already revoked.
 
 ---
 

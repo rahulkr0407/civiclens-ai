@@ -9,8 +9,15 @@ export interface AuthUser {
 export interface LoginResponse {
   message: string;
   access_token: string;
+  refresh_token: string;
   token_type: string;
   user: AuthUser;
+}
+
+export interface RefreshResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
 }
 
 export interface SignupRequest {

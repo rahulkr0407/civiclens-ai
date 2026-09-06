@@ -30,10 +30,7 @@ def _ai_error_response(exc: Exception, action: str) -> HTTPException:
         )
     if isinstance(exc, AIProviderError):
         if exc.status_code == 429:
-            detail = (
-                "The AI service is receiving too many requests right now "
-                "(the free tier is metered). Please wait a minute and try again."
-            )
+            detail = _rate_limit_detail(exc)
         else:
             detail = (
                 f"The AI service is temporarily unavailable while {action}. "
@@ -43,6 +40,33 @@ def _ai_error_response(exc: Exception, action: str) -> HTTPException:
     return HTTPException(
         status_code=500,
         detail=f"Something went wrong {action}.",
+    )
+
+
+_QUOTA_EXHAUSTION_MARKERS = (
+    "free_tier",
+    "free tier",
+    "generate_content_free_tier",
+    "per day",
+    "per-day",
+    "daily",
+)
+
+
+def _rate_limit_detail(exc: AIProviderError) -> str:
+    """Give a specific message when the 429 is the free-tier daily quota."""
+    text = str(exc).lower()
+
+    if any(marker in text for marker in _QUOTA_EXHAUSTION_MARKERS):
+        return (
+            "The AI service's free tier is metered per day and that limit is "
+            "currently used up. Please try again after the daily reset, or "
+            "raise the limit on the AI project."
+        )
+
+    return (
+        "The AI service is receiving too many requests right now "
+        "(the free tier is metered). Please wait a minute and try again."
     )
 
 

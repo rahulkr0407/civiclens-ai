@@ -2,7 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from pwdlib import PasswordHash
 
-from app.core.security import create_access_token, get_current_user
+from app.core.security import (
+    create_access_token,
+    generate_refresh_token,
+    get_current_user,
+    hash_refresh_token,
+    is_refresh_token_valid,
+    refresh_token_expiry,
+)
 from app.db.database import users_collection
 
 
@@ -31,6 +38,27 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+def _issue_refresh_token(user_id: str) -> str:
+    """Generate a refresh token, persist its hash, and return the plain value."""
+    refresh_token = generate_refresh_token()
+
+    users_collection.update_one(
+        {"_id": user_id},
+        {
+            "$set": {
+                "refreshTokenHash": hash_refresh_token(refresh_token),
+                "refreshTokenExpiresAt": refresh_token_expiry(),
+            }
+        },
+    )
+
+    return refresh_token
 
 
 # =========================
@@ -99,9 +127,12 @@ def login(user: LoginRequest):
             detail="Invalid email or password."
         )
 
+    refresh_token = _issue_refresh_token(existing_user["_id"])
+
     return {
         "message": "Login successful.",
         "access_token": create_access_token(str(existing_user["_id"])),
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": {
             "fullName": existing_user["fullName"],
@@ -110,6 +141,61 @@ def login(user: LoginRequest):
             "educationLevel": existing_user.get("educationLevel"),
             "interests": existing_user.get("interests", []),
         },
+    }
+
+
+# =========================
+# REFRESH
+# =========================
+
+@router.post("/refresh")
+def refresh(request: RefreshRequest):
+
+    if not request.refresh_token:
+        raise HTTPException(
+            status_code=401,
+            detail="No refresh token provided.",
+        )
+
+    user = users_collection.find_one({
+        "refreshTokenHash": hash_refresh_token(request.refresh_token)
+    })
+
+    if not user or not is_refresh_token_valid(user, request.refresh_token):
+        raise HTTPException(
+            status_code=401,
+            detail="Your session has expired. Please log in again.",
+        )
+
+    # Rotate: revoke the old token and issue a fresh one.
+    new_refresh_token = _issue_refresh_token(user["_id"])
+
+    return {
+        "access_token": create_access_token(str(user["_id"])),
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer",
+    }
+
+
+# =========================
+# LOGOUT
+# =========================
+
+@router.post("/logout")
+def logout(request: RefreshRequest):
+
+    users_collection.update_one(
+        {"refreshTokenHash": hash_refresh_token(request.refresh_token)},
+        {
+            "$set": {
+                "refreshTokenHash": None,
+                "refreshTokenExpiresAt": None,
+            }
+        },
+    )
+
+    return {
+        "message": "Logged out successfully."
     }
 
 
