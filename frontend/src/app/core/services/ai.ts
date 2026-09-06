@@ -12,6 +12,15 @@ export interface ExplainRequest {
   language?: string;
 }
 
+export interface ExplainTrackerRequest {
+  tracker_id: string;
+  age: number;
+  education_level: string;
+  interests: string[];
+  style?: string;
+  language?: string;
+}
+
 export interface ExplainViewpoint {
   side: string;
   explanation: string;
@@ -51,6 +60,13 @@ export class AiService {
   explain(request: ExplainRequest): Observable<ExplainResponse> {
     return this.http.post<ExplainResponse>(
       `${API_BASE_URL}/ai/explain`,
+      request
+    );
+  }
+
+  explainTracker(request: ExplainTrackerRequest): Observable<ExplainResponse> {
+    return this.http.post<ExplainResponse>(
+      `${API_BASE_URL}/ai/explain-tracker`,
       request
     );
   }

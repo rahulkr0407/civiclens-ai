@@ -14,11 +14,18 @@ import os
 import re
 import time
 
-from app.ai.models import ChatRequest, ExplainRequest, ExplainResponse
+from app.ai.models import (
+    ChatRequest,
+    ExplainRequest,
+    ExplainResponse,
+    ExplainTrackerRequest,
+)
 from app.ai.prompts import (
     build_chat_system_prompt,
     build_chat_user_prompt,
     build_system_prompt,
+    build_tracker_system_prompt,
+    build_tracker_user_prompt,
     build_user_prompt,
 )
 
@@ -125,8 +132,12 @@ def _call_with_retry(fn):
 # Generation
 # =========================
 
-def generate(request: ExplainRequest, topic: dict) -> ExplainResponse:
-    """Generate a grounded, age-appropriate, neutral explanation."""
+def _generate_structured_response(
+    prompt: str,
+    system_instruction: str,
+    label: str,
+) -> ExplainResponse:
+    """Call the provider with structured-output schema and parse the response."""
     api_key = os.getenv(GEMINI_API_KEY_ENV)
     if not api_key:
         raise AINotConfiguredError(
@@ -145,9 +156,9 @@ def generate(request: ExplainRequest, topic: dict) -> ExplainResponse:
         response = _call_with_retry(
             lambda: client.models.generate_content(
                 model=model,
-                contents=build_user_prompt(topic, request),
+                contents=prompt,
                 config=types.GenerateContentConfig(
-                    system_instruction=build_system_prompt(),
+                    system_instruction=system_instruction,
                     temperature=GEMINI_TEMPERATURE,
                     response_mime_type="application/json",
                     response_json_schema=ExplainResponse.model_json_schema(),
@@ -168,11 +179,32 @@ def generate(request: ExplainRequest, topic: dict) -> ExplainResponse:
     except AIProviderError:
         raise
     except Exception as exc:
-        print(f"[civiclens-ai] generate() provider error: {type(exc).__name__}: {exc}", flush=True)
+        print(f"[civiclens-ai] provider error: {type(exc).__name__}: {exc}", flush=True)
         raise AIProviderError(
-            f"The AI provider could not generate a valid explanation: {exc}",
+            f"The AI provider could not generate a valid {label}: {exc}",
             status_code=_provider_status_code(exc),
         ) from exc
+
+
+def generate(request: ExplainRequest, topic: dict) -> ExplainResponse:
+    """Generate a grounded, age-appropriate, neutral explanation."""
+    return _generate_structured_response(
+        build_user_prompt(topic, request),
+        build_system_prompt(),
+        "explanation",
+    )
+
+
+def generate_tracker(
+    request: ExplainTrackerRequest,
+    tracker: dict,
+) -> ExplainResponse:
+    """Generate a grounded explanation for a bill or protest tracker."""
+    return _generate_structured_response(
+        build_tracker_user_prompt(tracker, request),
+        build_tracker_system_prompt(),
+        "tracker explanation",
+    )
 
 
 # =========================

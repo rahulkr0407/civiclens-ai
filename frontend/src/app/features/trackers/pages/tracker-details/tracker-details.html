@@ -113,6 +113,179 @@
       </div>
     }
 
+    <!-- AI Section -->
+    <section
+      class="mt-12 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white sm:p-8"
+    >
+      <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm font-semibold text-blue-100">✨ Personalize your learning</p>
+          <h2 class="mt-2 text-2xl font-bold">Want this explained more simply?</h2>
+          <p class="mt-2 max-w-xl text-sm leading-6 text-blue-100">
+            Ask CivicLens AI to explain this {{ tracker.type }} based on your age and
+            understanding level, grounded in the tracker's sources.
+          </p>
+        </div>
+
+        <div class="shrink-0">
+          <label
+            for="ai-language"
+            class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-blue-200"
+          >
+            Language
+          </label>
+
+          <select
+            id="ai-language"
+            [(ngModel)]="language"
+            class="mb-3 w-full rounded-xl border-0 bg-white/95 px-3 py-2.5 text-sm font-semibold text-blue-700 shadow-sm outline-none transition focus:ring-2 focus:ring-white/80 sm:w-auto"
+          >
+            @for (option of languageOptions; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+
+          <button
+            type="button"
+            (click)="explainWithAI()"
+            [disabled]="aiLoading"
+            class="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-blue-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 sm:w-auto"
+          >
+            @if (aiLoading) {
+              <span
+                class="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+              ></span>
+              <span>Explaining…</span>
+            } @else {
+              <span>✨ Explain with AI</span>
+            }
+          </button>
+
+          @if (aiError) {
+            <p class="mt-3 max-w-xs text-sm font-medium leading-6 text-red-100">
+              {{ aiError }}
+            </p>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Result -->
+    @if (aiResult) {
+      <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-lg"
+            >
+              ✨
+            </span>
+            <div>
+              <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">
+                {{ aiResult.topicTitle }} — AI explanation
+              </h2>
+              <p class="mt-0.5 text-xs text-slate-500">
+                Generated for your learning level. Always check the sources below.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              (click)="regenerateExplanation()"
+              [disabled]="aiLoading"
+              class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              @if (aiLoading) {
+                <span class="mr-1 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-400 border-t-transparent align-middle"></span>
+              }
+              Regenerate
+            </button>
+
+            <button
+              type="button"
+              (click)="saveExplanation()"
+              [disabled]="aiLoading || savedExplain"
+              class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold transition disabled:cursor-default disabled:opacity-70"
+              [class.border-green-200]="savedExplain"
+              [class.bg-green-50]="savedExplain"
+              [class.text-green-700]="savedExplain"
+              [class.text-slate-700]="!savedExplain"
+              [class.hover:border-blue-200]="!savedExplain"
+              [class.hover:bg-blue-50]="!savedExplain"
+              [class.hover:text-blue-700]="!savedExplain"
+            >
+              @if (savedExplain) {
+                <span>Saved ✓</span>
+              } @else {
+                <span>Save explanation</span>
+              }
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-6">
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">In simple terms</h3>
+            <p class="mt-2 leading-8 text-slate-700">{{ aiResult.simpleExplanation }}</p>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">Why it matters</h3>
+            <p class="mt-2 leading-8 text-slate-700">{{ aiResult.whyItMatters }}</p>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">Key points</h3>
+            <div class="mt-3 space-y-3">
+              @for (point of aiResult.keyPoints; track point) {
+                <div class="flex gap-3 rounded-xl bg-slate-50 p-4">
+                  <span
+                    class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600"
+                  >
+                    ✓
+                  </span>
+                  <p class="leading-7 text-slate-600">{{ point }}</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">Viewpoints</h3>
+            <div class="mt-3 space-y-4">
+              @for (viewpoint of aiResult.viewpoints; track viewpoint.side) {
+                <div class="rounded-2xl border border-slate-200 border-l-4 border-l-blue-400 bg-slate-50 p-5">
+                  <h4 class="font-bold text-slate-900">{{ viewpoint.side }}</h4>
+                  <p class="mt-2 leading-7 text-slate-600">{{ viewpoint.explanation }}</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-blue-600">Questions to think about</h3>
+            <div class="mt-3 space-y-3">
+              @for (question of aiResult.questionsToThinkAbout; track question) {
+                <div class="flex gap-3 rounded-xl bg-blue-50 p-4">
+                  <span class="shrink-0 font-bold text-blue-600">?</span>
+                  <p class="leading-7 text-slate-700">{{ question }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- Save status -->
+    @if (saveMessage) {
+      <p class="mt-4 rounded-xl px-4 py-3 text-sm font-medium text-blue-600">
+        {{ saveMessage }}
+      </p>
+    }
+
     <!-- Note -->
     <p class="mt-6 text-center text-xs text-slate-400">
       Status is as of {{ formatDate(tracker.lastUpdated) }} and may change.

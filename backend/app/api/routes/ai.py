@@ -3,16 +3,23 @@ import time
 
 from fastapi import APIRouter, HTTPException
 
-from app.ai.models import ChatRequest, ChatResponse, ExplainRequest, ExplainResponse
+from app.ai.models import (
+    ChatRequest,
+    ChatResponse,
+    ExplainRequest,
+    ExplainResponse,
+    ExplainTrackerRequest,
+)
 from app.ai.service import (
     AINotConfiguredError,
     AIProviderError,
     chat,
     generate,
+    generate_tracker,
     verify,
     verify_chat,
 )
-from app.db.database import topics_collection
+from app.db.database import topics_collection, trackers_collection
 
 router = APIRouter()
 
@@ -115,6 +122,40 @@ def explain_topic(request: ExplainRequest):
         raise HTTPException(
             status_code=502,
             detail="The AI explanation could not be verified against the topic sources. Please try again.",
+        )
+
+    _store_explain(cache_key, response)
+    return response
+
+
+@router.post("/ai/explain-tracker", response_model=ExplainResponse)
+def explain_tracker(request: ExplainTrackerRequest):
+
+    tracker = trackers_collection.find_one(
+        {"id": request.tracker_id},
+        {"_id": 0},
+    )
+
+    if not tracker:
+        raise HTTPException(
+            status_code=404,
+            detail="Tracker not found.",
+        )
+
+    cache_key = f"tracker:{request.tracker_id}::{request.model_dump_json()}"
+    cached = _cached_explain(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        response = generate_tracker(request, tracker)
+    except (AINotConfiguredError, AIProviderError) as exc:
+        raise _ai_error_response(exc, "generating the tracker explanation") from exc
+
+    if not verify(response, tracker):
+        raise HTTPException(
+            status_code=502,
+            detail="The AI explanation could not be verified against the tracker sources. Please try again.",
         )
 
     _store_explain(cache_key, response)

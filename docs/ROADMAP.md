@@ -73,6 +73,10 @@
 - [x] Tracker detail page (`/tracker/:id`) + `GET /api/trackers/{id}`
 - [x] Deployed via seed against Atlas (no rebuild needed)
 
-## Phase 12 — Ideas (not started)
-- [ ] "Add to AI explain" for trackers (curated explain via Gemini grounded in tracker sources)
+## Phase 12 — Tracker AI explain (done)
+- [x] `POST /api/ai/explain-tracker` (grounded in tracker doc + official sources, verified, cached 10 min)
+- [x] "Explain with AI" on tracker detail pages (language toggle, Regenerate, Save to dashboard)
+
+## Phase 13 — Ideas (not started)
 - [ ] Auto-refresh tracker statuses each Parliament session
+- [ ] Follow-up chat for trackers (grounded like `/api/ai/chat`)

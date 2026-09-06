@@ -258,6 +258,51 @@ its official sources. The last 6 conversation turns are sent to the provider.
 
 ---
 
+## `POST /api/ai/explain-tracker`
+
+Generate an age/education-appropriate, neutral explanation for a **bill or
+protest tracker** (`/api/trackers` item). Same contract and verification as
+`/api/ai/explain`, but grounded in the tracker document (summary, status,
+stage, viewpoints, official sources) instead of a topic.
+
+**Status:** live (Phase 12). Backed by Gemini, verified against the tracker's
+official sources, cached in-memory for 10 minutes (same tracker + profile).
+
+**Request body:**
+
+```json
+{
+  "tracker_id": "fcra-amendment",
+  "age": 16,
+  "education_level": "School",
+  "interests": ["Governance"],
+  "style": "simple",
+  "language": "English"
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `tracker_id` | string | yes | Tracker id from `/api/trackers` (e.g. `fcra-amendment`) |
+| `age` | integer | yes | Used to match explanation depth |
+| `education_level` | string | yes | e.g. `School`, `College`, `Professional` |
+| `interests` | array of strings | no | Used to add helpful examples when supported by the material |
+| `style` | string | no | e.g. `simple`, `detailed`; omitted → automatic |
+| `language` | string | no | `English`, `Hindi`, `Hinglish`; default `English` |
+
+**`200`** — an `ExplainResponse` (same shape as `/api/ai/explain`).
+
+**Error codes:**
+
+| Code | Meaning |
+|---|---|
+| `404` | Tracker not found (`{ "detail": "Tracker not found." }`) |
+| `422` | Validation error (missing/invalid request fields) |
+| `502` | AI provider unavailable, rate-limited, or output failed verification against the tracker's sources |
+| `500` | Unexpected server error |
+
+---
+
 ## Saved history (Dashboard)
 
 **Status:** live (Phase 8). Per-user history stored inside `users_collection`

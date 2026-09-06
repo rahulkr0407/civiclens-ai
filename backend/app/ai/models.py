@@ -25,6 +25,15 @@ class ExplainRequest(BaseModel):
     language: str = "English"
 
 
+class ExplainTrackerRequest(BaseModel):
+    tracker_id: str
+    age: int
+    education_level: str
+    interests: list[str] = Field(default_factory=list)
+    style: Optional[str] = None
+    language: str = "English"
+
+
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
     content: str

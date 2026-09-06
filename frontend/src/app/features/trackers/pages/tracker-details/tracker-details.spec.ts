@@ -2,6 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { TrackersService, Tracker } from '../../../../core/services/trackers.service';
+import { AiService } from '../../../../core/services/ai';
+import { AuthService } from '../../../../core/services/auth.service';
+import { HistoryService } from '../../../../core/services/history.service';
 
 import { TrackerDetailsComponent } from './tracker-details';
 
@@ -9,6 +12,7 @@ describe('TrackerDetailsComponent', () => {
   let component: TrackerDetailsComponent;
   let fixture: ComponentFixture<TrackerDetailsComponent>;
   let service: TrackersService;
+  let aiService: AiService;
 
   const mockTracker: Tracker = {
     id: 'fcra-amendment',
@@ -23,6 +27,15 @@ describe('TrackerDetailsComponent', () => {
     ],
     lastUpdated: '2026-08-12',
     sources: [{ name: 'PRS', url: 'https://prsindia.org/billtrack' }],
+  };
+
+  const mockAiResult = {
+    topicTitle: 'Foreign Contribution (Regulation) Amendment Bill, 2026',
+    simpleExplanation: 'plain',
+    whyItMatters: 'plain',
+    keyPoints: ['one'],
+    viewpoints: [{ side: 'Proponents', explanation: 'side' }],
+    questionsToThinkAbout: ['q'],
   };
 
   beforeEach(async () => {
@@ -40,11 +53,21 @@ describe('TrackerDetailsComponent', () => {
           provide: TrackersService,
           useValue: { get: (id: string) => of({ ...mockTracker, id }) },
         },
+        {
+          provide: AiService,
+          useValue: { explainTracker: () => of(mockAiResult) },
+        },
+        { provide: AuthService, useValue: { isLoggedIn: () => true } },
+        {
+          provide: HistoryService,
+          useValue: { save: () => of({}) },
+        },
       ],
     })
     .compileComponents();
 
     service = TestBed.inject(TrackersService);
+    aiService = TestBed.inject(AiService);
     fixture = TestBed.createComponent(TrackerDetailsComponent);
     component = fixture.componentInstance;
   });
@@ -64,6 +87,23 @@ describe('TrackerDetailsComponent', () => {
     spyOn(service, 'get').and.returnValue(throwError(() => ({ status: 404 })));
     fixture.detectChanges();
     expect(component.errorMessage).toContain('not found');
+  });
+
+  it('should generate an AI explanation for the tracker', () => {
+    fixture.detectChanges();
+    component.explainWithAI();
+    expect(component.aiResult?.topicTitle).toContain('Foreign Contribution');
+    expect(component.aiLoading).toBeFalse();
+    expect(component.aiError).toBe('');
+  });
+
+  it('should map a 502 AI error to a friendly message', () => {
+    fixture.detectChanges();
+    spyOn(aiService, 'explainTracker').and.returnValue(
+      throwError(() => ({ status: 502, error: { detail: 'Quota exceeded' } }))
+    );
+    component.explainWithAI();
+    expect(component.aiError).toBe('Quota exceeded');
   });
 
   it('should assign an appropriate badge class by status', () => {

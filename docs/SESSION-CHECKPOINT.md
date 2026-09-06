@@ -33,18 +33,19 @@
 - **Dashboard**: per-user saved explanations + conversations (`users_collection.savedHistory`, max 100) — Save buttons on explain/chat, Dashboard page (`/dashboard`, guarded by `authGuard`), delete/clear
 - **Saved topics**: bookmark (★) toggle on topic cards + topic details; Dashboard "Saved topics" section (`users_collection.savedTopics`, max 100, dup-safe; `GET/POST/DELETE /api/history/topics`)
 - **Civic Trackers**: `trackers_collection` (9 bills + 4 protests, neutral, both-side viewpoints, official sources); `GET /api/trackers` (`?type=bill|protest`) + `GET /api/trackers/{id}`; Trackers page `/trackers` with All/Bills/Protests tabs, status badges, expandable cards with viewpoints + sources; tracker detail page `/tracker/:id`. Content curated + seeded via `python -m app.seed_trackers`.
+- **Tracker AI explain**: `POST /api/ai/explain-tracker` (grounded in tracker doc + official sources, Gemini schema-forced, verified, 10-min cache); language toggle + Regenerate + Save to dashboard on tracker detail pages.
 
 ## 4. Known issues / open items (IMPORTANT)
 
 1. **Free-tier quota: 20 requests/day for gemini-3.6-flash** (`generate_content_free_tier_requests`, limit 20). When exhausted the API returns 502 with a rate-limit hint until reset/raised. This was the root cause of the earlier "intermittent 502s" — NOT a code bug. **The previously leaked GEMINI_API_KEY has been rotated** (new key in a new AI Studio project; set on Render).
 2. **`JWT_SECRET` must be set on Render** (backend service env var) or the API will refuse to start. Local value is in `backend/.env` (not committed). Optional `JWT_EXPIRES_MINUTES` (default **60**) and `REFRESH_TOKEN_DAYS` (default **30**).
 3. Explain cache is in-memory only (resets on redeploy; fine for single instance).
-4. `npx ng test --watch=false --browsers=ChromeHeadless` is now **green** (28 specs — incl. Trackers list + tracker detail specs).
+4. `npx ng test --watch=false --browsers=ChromeHeadless` is now **green** (30 specs — incl. Trackers list + tracker detail + AI explain specs).
 
 ## 5. Next steps candidates (not started)
 
-- "AI explain" for trackers (Gemini grounded in tracker sources)
 - Auto-refresh tracker statuses per Parliament session
+- Follow-up chat for trackers (grounded like `/api/ai/chat`)
 - (Old) Bill/Protest Trackers — DONE via Phase 11 (see commits)
 
 ## 6. Dev cheatsheet (Windows / PowerShell)

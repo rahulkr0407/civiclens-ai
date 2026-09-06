@@ -13,7 +13,12 @@ The prompts are built to guarantee:
 
 from typing import Optional
 
-from app.ai.models import ChatMessage, ChatRequest, ExplainRequest
+from app.ai.models import (
+    ChatMessage,
+    ChatRequest,
+    ExplainRequest,
+    ExplainTrackerRequest,
+)
 
 
 def _language_line(language: Optional[str]) -> str:
@@ -118,6 +123,84 @@ def build_user_prompt(
         + learner_profile
         + "\n\nNow produce the explanation using ONLY the topic material above, "
         "respecting all the rules in your instructions. Write the whole "
+        "explanation in the requested language."
+    )
+
+
+_TRACKER_SYSTEM_PROMPT = (
+    "You are CivicLens AI, a neutral civic education assistant for India.\n"
+    "You explain the current status of bills before Parliament and ongoing "
+    "or concluded protests in a simple, accurate and balanced way.\n\n"
+    "Rules you must follow:\n"
+    "1. Use ONLY the tracker material and official references given below. "
+    "Do not add facts, statistics, dates, names or events that are not present "
+    "in that material.\n"
+    "2. Never invent, guess, or fabricate sources. Never create URLs. "
+    "Cite only by referring to the official references provided below.\n"
+    "3. Clearly separate factual explanation from different viewpoints. "
+    "Present every viewpoint neutrally, without favouring any side.\n"
+    "4. Never express or imply a political position, and make no value "
+    "judgements about political parties, governments, groups or people.\n"
+    "5. Report the tracker's status and stage exactly as given. Do not "
+    "predict what will happen next.\n"
+    "6. Match the depth and vocabulary to the learner's age and education "
+    "level, without changing the factual meaning.\n"
+    "7. Keep the explanation concise, structured and easy to read.\n"
+    "8. If the learner has interests, explain relevant concepts using "
+    "those interests as helpful examples only when the tracker material "
+    "supports it.\n"
+    "9. When you are unsure whether a fact is supported by the material, "
+    "do not mention it."
+)
+
+
+def build_tracker_system_prompt() -> str:
+    return _TRACKER_SYSTEM_PROMPT
+
+
+def build_tracker_user_prompt(
+    tracker: dict,
+    request: ExplainTrackerRequest,
+) -> str:
+    """Build the user prompt from a tracker document and the learner's request."""
+    interests = ", ".join(request.interests) if request.interests else "not provided"
+    style = request.style or "automatic"
+
+    tracker_material = "\n".join(
+        [
+            f"Title: {tracker.get('title', '')}",
+            f"Type: {tracker.get('type', '')}",
+            f"Category: {tracker.get('category', '')}",
+            f"Status: {tracker.get('status', '')}",
+            f"Stage: {tracker.get('stage', '')}",
+            f"Summary: {tracker.get('summary', '')}",
+            f"Last updated: {tracker.get('lastUpdated', '')}",
+            "Viewpoints:",
+            _render_viewpoints(tracker.get("viewpoints", [])),
+            "Official references used for this tracker:",
+            _render_sources(tracker.get("sources", [])),
+        ]
+    )
+
+    learner_profile = "\n".join(
+        [
+            f"- Age: {request.age}",
+            f"- Education level: {request.education_level}",
+            f"- Interests: {interests}",
+            f"- Requested explanation style: {style}",
+            _language_line(request.language),
+        ]
+    )
+
+    return (
+        "Explain this bill or protest tracker to the learner.\n\n"
+        "== TRACKER MATERIAL =="
+        "\n"
+        + tracker_material
+        + "\n\n== LEARNER PROFILE ==\n"
+        + learner_profile
+        + "\n\nNow produce the explanation using ONLY the tracker material "
+        "above, respecting all the rules in your instructions. Write the whole "
         "explanation in the requested language."
     )
 
