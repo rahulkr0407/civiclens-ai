@@ -13,6 +13,10 @@
 
 | Commit | What |
 |---|---|
+| `77dd6ae` | Phase 13: tracker follow-up chat (`/api/ai/chat-tracker` + chat UI) + "May be outdated" staleness badges. |
+| `a745310` | Phase 12: tracker AI explain (`/api/ai/explain-tracker` + Explain-with-AI UI on tracker detail pages). |
+| `339c5a9` | Phase 11b: tracker detail pages (`GET /api/trackers/{id}`, `/tracker/:id`, count navigation). |
+| `e8f02d6` | Phase 11: Civic Trackers (bills + protests, `/api/trackers`, 13 seeded trackers). |
 | `fd55cc1` | Phase 10: user-saved topics (bookmarks, saved-topics dashboard, saved-topics API). |
 | `30054f9` | Phase 9: fixed broken unit specs (`ng test` green, 19 specs). |
 | `a00410f` | Phase 8.5: rotating refresh tokens, refresh/logout endpoints, auto-refresh interceptor, dashboard route guard, sharper quota 502. |
