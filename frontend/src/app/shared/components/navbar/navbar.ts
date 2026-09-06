@@ -1,10 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-
-interface User {
-  fullName: string;
-  email: string;
-}
+import { AuthService } from '../../../core/services/auth.service';
+import { AuthUser } from '../../models/user.model';
 
 @Component({
   selector: 'app-navbar',
@@ -17,30 +14,24 @@ export class NavbarComponent implements OnInit {
   mobileMenuOpen = false;
 
   isLoggedIn = false;
-  user: User | null = null;
+  user: AuthUser | null = null;
 
-  constructor(private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadUser();
   }
 
   loadUser(): void {
-    const loggedIn = localStorage.getItem('civiclens_logged_in');
-    const savedUser = localStorage.getItem('civiclens_user');
-
-    this.isLoggedIn = loggedIn === 'true';
-
-    if (savedUser) {
-      this.user = JSON.parse(savedUser);
-    } else {
-      this.user = null;
-    }
+    this.isLoggedIn = this.auth.isLoggedIn();
+    this.user = this.auth.getUser();
   }
 
   logout(): void {
-    localStorage.removeItem('civiclens_user');
-    localStorage.removeItem('civiclens_logged_in');
+    this.auth.logout();
 
     this.isLoggedIn = false;
     this.user = null;

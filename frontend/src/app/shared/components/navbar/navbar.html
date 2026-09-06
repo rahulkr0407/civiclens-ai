@@ -42,6 +42,13 @@
       <a routerLink="/about" class="font-medium text-slate-600 transition hover:text-blue-600">
         About
       </a>
+
+      @if (isLoggedIn) {
+        <!-- Dashboard -->
+        <a routerLink="/dashboard" class="font-medium text-slate-600 transition hover:text-blue-600">
+          Dashboard
+        </a>
+      }
     </div>
 
     <!-- Desktop Actions -->
@@ -160,6 +167,17 @@
         >
           About
         </a>
+
+        @if (isLoggedIn) {
+          <!-- Dashboard -->
+          <a
+            routerLink="/dashboard"
+            (click)="closeMobileMenu()"
+            class="rounded-lg px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-100 hover:text-blue-600"
+          >
+            Dashboard
+          </a>
+        }
 
         <!-- Divider -->
         <div class="my-2 border-t border-slate-200"></div>

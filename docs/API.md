@@ -76,6 +76,8 @@ Authenticate a user.
 ```json
 {
   "message": "Login successful.",
+  "access_token": "<jwt>",
+  "token_type": "bearer",
   "user": {
     "fullName": "Example User",
     "email": "user@example.com",
@@ -88,9 +90,31 @@ Authenticate a user.
 
 **`401`:** `{ "detail": "Invalid email or password." }`
 
-Note: no JWT/session token is issued yet. The frontend stores the returned
-`user` object in `localStorage` for session UI; this is a known item for the
-Phase 9 production hardening.
+The `access_token` is a JWT (HS256). Send it on protected routes as
+`Authorization: Bearer <token>`. The frontend stores it in `localStorage`
+alongside the `user` object and attaches it automatically via an HTTP
+interceptor. Token lifetime defaults to 7 days (`JWT_EXPIRES_MINUTES`).
+
+---
+
+## `GET /api/auth/me`
+
+Returns the profile for the currently authenticated user. Requires a valid
+Bearer token (uses the same `Authorization` header as login's `access_token`).
+
+**`200`:**
+
+```json
+{
+  "fullName": "Example User",
+  "email": "user@example.com",
+  "age": 22,
+  "educationLevel": "College",
+  "interests": ["Economy", "Education"]
+}
+```
+
+**`401`:** missing/invalid/expired token.
 
 ---
 
@@ -193,3 +217,65 @@ its official sources. The last 6 conversation turns are sent to the provider.
 **Resilience:** transient provider errors (HTTP 429/5xx) are retried up to
 `GEMINI_MAX_RETRIES` times (default 3) with backoff (5s → 20s → 40s). A live
 `429` (free-tier daily quota) returns a `502` with a rate-limit hint.
+
+---
+
+## Saved history (Dashboard)
+
+**Status:** live (Phase 8). Per-user history stored inside `users_collection`
+under `savedHistory` (max 100 items, newest first). All routes require
+`Authorization: Bearer <token>` (401 if missing/expired).
+
+### `GET /api/history`
+
+List the signed-in user's saved items.
+
+**`200`:**
+
+```json
+{
+  "items": [
+    {
+      "id": "abc123...",
+      "type": "explain",
+      "topicId": "gst",
+      "topicTitle": "GST",
+      "language": "English",
+      "savedAt": "2026-09-06T06:00:00+00:00",
+      "content": { "simpleExplanation": "...", "...": "..." }
+    }
+  ]
+}
+```
+
+`content` is an `ExplainResponse` (type `explain`) or
+`{ "messages": [...], "reply": "..." }` (type `chat`).
+
+### `POST /api/history`
+
+Save an item. **Request body:**
+
+```json
+{
+  "type": "explain",
+  "topicId": "gst",
+  "topicTitle": "GST",
+  "language": "English",
+  "content": {}
+}
+```
+
+- `type`: `explain` | `chat` (required)
+- `content`: the saved payload (ExplainResponse shape, or `{messages, reply}`)
+
+**`200`:** `{ "message": "Saved to your dashboard.", "item": {...} }`
+
+### `DELETE /api/history/{item_id}`
+
+Remove one saved item. **`200`** `{ "message": "Removed from your dashboard." }`
+· **`404`** if the item id isn't present.
+
+### `DELETE /api/history`
+
+Clear the entire saved history. **`200`**
+`{ "message": "Your dashboard has been cleared." }`

@@ -9,6 +9,7 @@ import { LoginComponent } from './features/auth/pages/login/login';
 import { SignupComponent } from './features/auth/pages/signup/signup';
 import { SourcesComponent } from './features/sources/pages/sources/sources';
 import { AboutComponent } from './features/about/pages/about/about';
+import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard';
 
 export const routes: Routes = [
 
@@ -53,6 +54,12 @@ export const routes: Routes = [
   {
     path: 'about',
     component: AboutComponent,
+  },
+
+  // Dashboard (saved history)
+  {
+    path: 'dashboard',
+    component: DashboardComponent,
   },
 
   // Authentication

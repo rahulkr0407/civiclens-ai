@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from pwdlib import PasswordHash
 
+from app.core.security import create_access_token, get_current_user
 from app.db.database import users_collection
 
 
@@ -100,6 +101,8 @@ def login(user: LoginRequest):
 
     return {
         "message": "Login successful.",
+        "access_token": create_access_token(str(existing_user["_id"])),
+        "token_type": "bearer",
         "user": {
             "fullName": existing_user["fullName"],
             "email": existing_user["email"],
@@ -107,4 +110,19 @@ def login(user: LoginRequest):
             "educationLevel": existing_user.get("educationLevel"),
             "interests": existing_user.get("interests", []),
         },
+    }
+
+
+# =========================
+# CURRENT USER
+# =========================
+
+@router.get("/me")
+def current_user(user: dict = Depends(get_current_user)):
+    return {
+        "fullName": user["fullName"],
+        "email": user["email"],
+        "age": user.get("age"),
+        "educationLevel": user.get("educationLevel"),
+        "interests": user.get("interests", []),
     }

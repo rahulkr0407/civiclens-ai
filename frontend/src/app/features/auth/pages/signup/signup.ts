@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { API_BASE_URL } from '../../../../core/services/api-config';
+import { AuthService } from '../../../../core/services/auth.service';
+import { SignupRequest } from '../../../../shared/models/user.model';
 
 @Component({
   selector: 'app-signup',
@@ -28,13 +28,11 @@ export class SignupComponent {
   showPassword = false;
   showConfirmPassword = false;
 
-  errorMessage = '';
+errorMessage = '';
   successMessage = '';
 
-  private apiUrl = `${API_BASE_URL}/auth`;
-
   constructor(
-    private http: HttpClient,
+    private auth: AuthService,
     private router: Router
   ) {}
 
@@ -113,8 +111,7 @@ export class SignupComponent {
     // Send request to FastAPI
     // -------------------------
 
-    this.http
-      .post(`${this.apiUrl}/signup`, signupData)
+    this.auth.signup(signupData)
       .subscribe({
 
         next: (response) => {

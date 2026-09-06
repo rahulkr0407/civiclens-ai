@@ -381,17 +381,41 @@
 
                 </div>
 
-                <button
-                  type="button"
-                  (click)="regenerateExplanation()"
-                  [disabled]="aiLoading"
-                  class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  @if (aiLoading) {
-                    <span class="mr-1 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-400 border-t-transparent align-middle"></span>
-                  }
-                  Regenerate
-                </button>
+                <div class="flex flex-wrap items-center gap-3">
+
+                  <button
+                    type="button"
+                    (click)="regenerateExplanation()"
+                    [disabled]="aiLoading"
+                    class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    @if (aiLoading) {
+                      <span class="mr-1 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-400 border-t-transparent align-middle"></span>
+                    }
+                    Regenerate
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="saveExplanation()"
+                    [disabled]="aiLoading || savedExplain"
+                    class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold transition disabled:cursor-default disabled:opacity-70"
+                    [class.border-green-200]="savedExplain"
+                    [class.bg-green-50]="savedExplain"
+                    [class.text-green-700]="savedExplain"
+                    [class.text-slate-700]="!savedExplain"
+                    [class.hover:border-blue-200]="!savedExplain"
+                    [class.hover:bg-blue-50]="!savedExplain"
+                    [class.hover:text-blue-700]="!savedExplain"
+                  >
+                    @if (savedExplain) {
+                      <span>Saved ✓</span>
+                    } @else {
+                      <span>Save explanation</span>
+                    }
+                  </button>
+
+                </div>
 
               </div>
 
@@ -513,6 +537,23 @@
 
           }
 
+          <!-- Save status -->
+          @if (saveMessage) {
+
+            <p
+              class="mt-4 rounded-xl px-4 py-3 text-sm font-medium"
+              [class.bg-green-50]="!saveMessage.startsWith('Please') && !saveMessage.includes('Could not') && !saveMessage.includes('expired')"
+              [class.text-green-700]="!saveMessage.startsWith('Please') && !saveMessage.includes('Could not') && !saveMessage.includes('expired')"
+              [class.bg-amber-50]="saveMessage.startsWith('Please')"
+              [class.text-amber-700]="saveMessage.startsWith('Please')"
+              [class.bg-red-50]="saveMessage.includes('Could not') || saveMessage.includes('expired')"
+              [class.text-red-600]="saveMessage.includes('Could not') || saveMessage.includes('expired')"
+            >
+              {{ saveMessage }}
+            </p>
+
+          }
+
 
           <!-- AI Follow-up Chat -->
           <section
@@ -607,7 +648,27 @@
 
             @if (chatMessages.length) {
 
-              <div class="mt-4 flex justify-end">
+              <div class="mt-4 flex items-center justify-end gap-4">
+
+                <button
+                  type="button"
+                  (click)="saveChat()"
+                  [disabled]="savedChat || chatLoading || chatMessages[chatMessages.length - 1].role !== 'assistant'"
+                  class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold transition disabled:cursor-default disabled:opacity-70"
+                  [class.border-green-200]="savedChat"
+                  [class.bg-green-50]="savedChat"
+                  [class.text-green-700]="savedChat"
+                  [class.text-slate-700]="!savedChat"
+                  [class.hover:border-blue-200]="!savedChat"
+                  [class.hover:bg-blue-50]="!savedChat"
+                  [class.hover:text-blue-700]="!savedChat"
+                >
+                  @if (savedChat) {
+                    <span>Conversation saved ✓</span>
+                  } @else {
+                    <span>Save conversation</span>
+                  }
+                </button>
 
                 <button
                   type="button"

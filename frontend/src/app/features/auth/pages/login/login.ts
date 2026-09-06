@@ -1,19 +1,8 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { API_BASE_URL } from '../../../../core/services/api-config';
-
-interface LoginResponse {
-  message: string;
-  user: {
-    fullName: string;
-    email: string;
-    age: number;
-    educationLevel: string;
-    interests: string[];
-  };
-}
+import { AuthService } from '../../../../core/services/auth.service';
+import { LoginResponse } from '../../../../shared/models/user.model';
 
 @Component({
   selector: 'app-login',
@@ -32,10 +21,8 @@ export class LoginComponent {
   errorMessage = '';
   isLoading = false;
 
-  private apiUrl = `${API_BASE_URL}/auth`;
-
   constructor(
-    private http: HttpClient,
+    private auth: AuthService,
     private router: Router
   ) {}
 
@@ -50,26 +37,13 @@ export class LoginComponent {
 
     this.isLoading = true;
 
-    const loginData = {
-      email: this.email,
-      password: this.password,
-    };
-
-    this.http
-      .post<LoginResponse>(`${this.apiUrl}/login`, loginData)
+    this.auth.login(this.email, this.password)
       .subscribe({
-        next: (response) => {
+        next: (response: LoginResponse) => {
 
           console.log('Login successful:', response);
 
-          // Save logged-in user
-          localStorage.setItem(
-            'civiclens_user',
-            JSON.stringify(response.user)
-          );
-
-          // Save login state
-          localStorage.setItem('civiclens_logged_in', 'true');
+          this.auth.persistSession(response.user, response.access_token);
 
           this.isLoading = false;
 

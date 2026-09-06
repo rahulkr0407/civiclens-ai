@@ -1,0 +1,298 @@
+<section class="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+
+  <div class="mx-auto max-w-4xl">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <p class="text-sm font-semibold text-blue-600">
+        📚 Your learning space
+      </p>
+      <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+        Dashboard
+      </h1>
+      <p class="mt-2 max-w-xl text-sm leading-6 text-slate-500">
+        Your saved AI explanations and conversations, all in one place.
+      </p>
+    </div>
+
+    <!-- Not logged in -->
+    @if (!isLoggedIn && !loading) {
+
+      <div class="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+
+        <div
+          class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl"
+        >
+          🔐
+        </div>
+
+        <h2 class="mt-6 text-2xl font-bold text-slate-900">
+          Please log in to see your dashboard
+        </h2>
+
+        <p class="mx-auto mt-3 max-w-md leading-7 text-slate-600">
+          Your saved explanations and chats are tied to your account.
+        </p>
+
+        <div class="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+
+          <a
+            routerLink="/login"
+            class="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
+          >
+            Log in
+          </a>
+
+          <a
+            routerLink="/signup"
+            class="w-full rounded-xl border border-slate-200 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+          >
+            Create an account
+          </a>
+
+        </div>
+
+      </div>
+
+    }
+
+    <!-- Loading -->
+    @if (isLoggedIn && loading) {
+
+      <div class="flex min-h-64 items-center justify-center">
+
+        <div
+          class="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"
+        ></div>
+
+      </div>
+
+    }
+
+    <!-- Error -->
+    @if (isLoggedIn && !loading && errorMessage) {
+
+      <div
+        class="rounded-2xl border border-red-200 bg-red-50 px-6 py-10 text-center shadow-sm"
+      >
+        <h2 class="text-xl font-bold text-red-800">
+          Something went wrong
+        </h2>
+        <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-red-600">
+          {{ errorMessage }}
+        </p>
+      </div>
+
+    }
+
+    <!-- Empty state -->
+    @if (isLoggedIn && !loading && !errorMessage && items.length === 0) {
+
+      <div class="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+
+        <div
+          class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl"
+        >
+          ✨
+        </div>
+
+        <h2 class="mt-6 text-2xl font-bold text-slate-900">
+          Nothing saved yet
+        </h2>
+
+        <p class="mx-auto mt-3 max-w-md leading-7 text-slate-600">
+          Ask CivicLens AI to explain a topic, or have a follow-up conversation,
+          then hit <span class="font-semibold">Save</span> to keep it here.
+        </p>
+
+        <a
+          routerLink="/topics"
+          class="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+        >
+          Browse topics
+        </a>
+
+      </div>
+
+    }
+
+    <!-- Saved items -->
+    @if (isLoggedIn && !loading && items.length > 0) {
+
+      <div class="mb-6 flex items-center justify-between">
+
+        <p class="text-sm font-medium text-slate-500">
+          {{ items.length }} saved {{ items.length === 1 ? 'item' : 'items' }}
+        </p>
+
+        <button
+          type="button"
+          (click)="clearAll()"
+          class="text-sm font-semibold text-slate-400 transition hover:text-red-500"
+        >
+          Clear all
+        </button>
+
+      </div>
+
+      <div class="space-y-4">
+
+        @for (item of items; track item.id) {
+
+          <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+            <!-- Header -->
+            <button
+              type="button"
+              (click)="toggleItem(item.id)"
+              class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-slate-50 sm:px-6"
+            >
+              <div class="flex min-w-0 items-center gap-3">
+
+                <span
+                  class="shrink-0 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider"
+                  [class.bg-blue-50]="isExplain(item)"
+                  [class.text-blue-600]="isExplain(item)"
+                  [class.bg-violet-50]="!isExplain(item)"
+                  [class.text-violet-600]="!isExplain(item)"
+                >
+                  {{ isExplain(item) ? 'Explanation' : 'Chat' }}
+                </span>
+
+                <div class="min-w-0">
+
+                  <h3 class="truncate text-sm font-bold text-slate-900 sm:text-base">
+                    {{ item.topicTitle }}
+                  </h3>
+
+                  <p class="mt-0.5 text-xs text-slate-500">
+                    {{ item.language }} · {{ formatDate(item.savedAt) }}
+                  </p>
+
+                </div>
+
+              </div>
+
+              <span class="ml-2 shrink-0 text-slate-400">
+                {{ expanded[item.id] ? '▴' : '▾' }}
+              </span>
+            </button>
+
+            <!-- Body -->
+            @if (expanded[item.id]) {
+
+              <div class="border-t border-slate-100 px-5 py-5 sm:px-6">
+
+                @if (isExplain(item) && isExplainContent(item.content)) {
+
+                  <div class="space-y-4 text-sm leading-7 text-slate-700">
+
+                    <p>
+                      <span class="font-bold text-blue-600">In simple terms — </span>
+                      {{ item.content.simpleExplanation }}
+                    </p>
+
+                    <p>
+                      <span class="font-bold text-blue-600">Why it matters — </span>
+                      {{ item.content.whyItMatters }}
+                    </p>
+
+                    @if (item.content.keyPoints.length) {
+                      <ul class="mt-2 space-y-2">
+                        @for (point of item.content.keyPoints; track point) {
+                          <li class="flex gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                            <span class="shrink-0 font-bold text-blue-600">✓</span>
+                            {{ point }}
+                          </li>
+                        }
+                      </ul>
+                    }
+
+                    @if (item.content.viewpoints.length) {
+                      <div>
+                        <p class="font-bold text-blue-600">
+                          Viewpoints
+                        </p>
+                        <div class="mt-2 space-y-2">
+                          @for (viewpoint of item.content.viewpoints; track viewpoint.side) {
+                            <div class="rounded-xl border border-slate-200 border-l-4 border-l-blue-400 bg-slate-50 p-4">
+                              <p class="font-bold text-slate-900">{{ viewpoint.side }}</p>
+                              <p class="mt-1">{{ viewpoint.explanation }}</p>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    @if (item.content.questionsToThinkAbout.length) {
+                      <div>
+                        <p class="font-bold text-blue-600">
+                          Questions to think about
+                        </p>
+                        <ul class="mt-2 space-y-2">
+                          @for (question of item.content.questionsToThinkAbout; track question) {
+                            <li class="rounded-lg bg-blue-50 px-3 py-2">{{ question }}</li>
+                          }
+                        </ul>
+                      </div>
+                    }
+
+                  </div>
+
+                }
+
+                @if (!isExplain(item) && isChatContent(item.content)) {
+
+                  <div class="space-y-3">
+                    @for (message of item.content.messages; track $index) {
+                      <div class="flex" [class.justify-end]="message.role === 'user'">
+                        <div
+                          class="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-6"
+                          [class.bg-blue-600]="message.role === 'user'"
+                          [class.text-white]="message.role === 'user'"
+                          [class.bg-slate-100]="message.role === 'assistant'"
+                          [class.text-slate-700]="message.role === 'assistant'"
+                        >
+                          {{ message.content }}
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                }
+
+              </div>
+
+            }
+
+            <!-- Footer actions -->
+            <div class="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:px-6">
+
+              <a
+                [routerLink]="['/topic', item.topicId]"
+                class="text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+              >
+                Open topic →
+              </a>
+
+              <button
+                type="button"
+                (click)="deleteItem(item)"
+                class="text-sm font-semibold text-slate-400 transition hover:text-red-500"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </article>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+</section>

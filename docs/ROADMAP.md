@@ -44,7 +44,14 @@
 - [x] Root cause of live 502s identified: free-tier daily quota
       (`generate_content_free_tier_requests`, limit 20/model/day on the key)
 
-## Phase 8 — Ideas (not started)
-- [ ] Dashboard + saved chat/explanation history (users-collection persistence)
+## Phase 8 — Dashboard & saved history (live)
+- [x] JWT auth (access token on login, `GET /api/auth/me`, Bearer interceptor)
+- [x] `users_collection.savedHistory` persistence (explain + chat, max 100)
+- [x] `/api/history` save / list / delete / clear
+- [x] Dashboard page (`/dashboard`) + Save buttons on explain & chat
+
+## Phase 9 — Ideas (not started)
 - [ ] Bill Tracker / Protest Tracker
 - [ ] User-saved topics
+- [ ] JWT refresh + HTTP-only cookie hardening
+- [ ] Dashboard route guard

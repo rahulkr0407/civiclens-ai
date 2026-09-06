@@ -8,6 +8,8 @@ import {
   ExplainRequest,
   ExplainResponse,
 } from '../../../../core/services/ai';
+import { AuthService } from '../../../../core/services/auth.service';
+import { HistoryService } from '../../../../core/services/history.service';
 import { Topic } from '../../../../core/models/topic';
 
 interface LearnerProfile {
@@ -44,11 +46,17 @@ export class TopicDetailsComponent implements OnInit {
   chatLoading = false;
   chatError = '';
 
+  savedExplain = false;
+  savedChat = false;
+  saveMessage = '';
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private searchService: SearchService,
-    private aiService: AiService
+    private aiService: AiService,
+    private auth: AuthService,
+    private historyService: HistoryService
   ) {}
 
   ngOnInit(): void {
@@ -104,6 +112,7 @@ export class TopicDetailsComponent implements OnInit {
     this.aiLoading = true;
     this.aiError = '';
     this.aiResult = null;
+    this.savedExplain = false;
 
     const profile = this.getLearnerProfile();
 
@@ -164,6 +173,97 @@ export class TopicDetailsComponent implements OnInit {
   clearChat(): void {
     this.chatMessages = [];
     this.chatError = '';
+    this.savedChat = false;
+  }
+
+  saveExplanation(): void {
+    if (!this.topic || !this.aiResult) {
+      return;
+    }
+
+    if (!this.requireLogin()) {
+      return;
+    }
+
+    this.saveMessage = '';
+
+    this.historyService
+      .save({
+        type: 'explain',
+        topicId: this.topic.id,
+        topicTitle: this.topic.title,
+        language: this.language,
+        content: this.aiResult,
+      })
+      .subscribe({
+        next: () => {
+          this.savedExplain = true;
+          this.saveMessage = 'Explanation saved to your dashboard.';
+        },
+        error: (error) => {
+          this.saveMessage = this.mapSaveError(error);
+        },
+      });
+  }
+
+  saveChat(): void {
+    if (!this.topic || !this.chatMessages.length) {
+      return;
+    }
+
+    if (!this.requireLogin()) {
+      return;
+    }
+
+    const lastMessage = this.chatMessages[this.chatMessages.length - 1];
+
+    if (lastMessage.role !== 'assistant') {
+      return;
+    }
+
+    this.saveMessage = '';
+
+    this.historyService
+      .save({
+        type: 'chat',
+        topicId: this.topic.id,
+        topicTitle: this.topic.title,
+        language: this.language,
+        content: {
+          messages: this.chatMessages,
+          reply: lastMessage.content,
+        },
+      })
+      .subscribe({
+        next: () => {
+          this.savedChat = true;
+          this.saveMessage = 'Conversation saved to your dashboard.';
+        },
+        error: (error) => {
+          this.saveMessage = this.mapSaveError(error);
+        },
+      });
+  }
+
+  private requireLogin(): boolean {
+    const loggedIn = this.auth.isLoggedIn();
+
+    if (!loggedIn) {
+      this.saveMessage =
+        'Please log in to save items to your dashboard.';
+    }
+
+    return loggedIn;
+  }
+
+  private mapSaveError(error: any): string {
+    if (error.status === 401) {
+      return 'Your session has expired. Please log in again.';
+    }
+    return (
+      error.error?.detail ||
+      'Could not save right now. Please try again.'
+    );
   }
 
   private getLearnerProfile(): LearnerProfile {
