@@ -56,7 +56,10 @@
 - [x] Frontend auto-refresh on expired-token 401 + retry; `authGuard` on `/dashboard`
 - [x] Sharper 502 message when 429 is the free-tier daily quota
 
-## Phase 9 — Ideas (not started)
-- [ ] Fix broken unit specs (`ng test` — stale named imports)
+## Phase 9 — Fix unit specs (done)
+- [x] `ng test` green (19 specs) — fixed 8 stale named imports + missing TestBed providers/mocks
+- [x] `app.spec.ts` stale default-template title test replaced
+
+## Phase 10 — Ideas (not started)
 - [ ] User-saved topics
 - [ ] Bill Tracker / Protest Tracker

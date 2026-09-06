@@ -1,18 +1,27 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { provideRouter } from '@angular/router';
+import { SearchService } from '../../../../core/services/search';
+import { AuthService } from '../../../../core/services/auth.service';
 
-import { Home } from './home';
+import { HomeComponent } from './home';
 
-describe('Home', () => {
-  let component: Home;
-  let fixture: ComponentFixture<Home>;
+describe('HomeComponent', () => {
+  let component: HomeComponent;
+  let fixture: ComponentFixture<HomeComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Home]
+      imports: [HomeComponent],
+      providers: [
+        provideRouter([]),
+        { provide: SearchService, useValue: { getTopics: () => of([]) } },
+        { provide: AuthService, useValue: { isLoggedIn: () => false, getUser: () => null } },
+      ],
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Home);
+    fixture = TestBed.createComponent(HomeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

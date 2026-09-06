@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { SearchService } from '../../../../core/services/search';
 
 import { TrendingTopics } from './trending-topics';
 
@@ -8,7 +10,10 @@ describe('TrendingTopics', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TrendingTopics]
+      imports: [TrendingTopics],
+      providers: [
+        { provide: SearchService, useValue: { getTopics: () => of([]) } },
+      ],
     })
     .compileComponents();
 

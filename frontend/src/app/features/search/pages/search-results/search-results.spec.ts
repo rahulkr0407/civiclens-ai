@@ -1,18 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { provideRouter } from '@angular/router';
+import { SearchService } from '../../../../core/services/search';
 
-import { SearchResults } from './search-results';
+import { SearchResultsComponent } from './search-results';
 
-describe('SearchResults', () => {
-  let component: SearchResults;
-  let fixture: ComponentFixture<SearchResults>;
+describe('SearchResultsComponent', () => {
+  let component: SearchResultsComponent;
+  let fixture: ComponentFixture<SearchResultsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SearchResults]
+      imports: [SearchResultsComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: SearchService,
+          useValue: { getTopics: () => of([]) },
+        },
+      ],
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SearchResults);
+    fixture = TestBed.createComponent(SearchResultsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -34,11 +34,10 @@
 1. **Free-tier quota: 20 requests/day for gemini-3.6-flash** (`generate_content_free_tier_requests`, limit 20). When exhausted the API returns 502 with a rate-limit hint until reset/raised. This was the root cause of the earlier "intermittent 502s" — NOT a code bug. **The previously leaked GEMINI_API_KEY has been rotated** (new key in a new AI Studio project; set on Render).
 2. **`JWT_SECRET` must be set on Render** (backend service env var) or the API will refuse to start. Local value is in `backend/.env` (not committed). Optional `JWT_EXPIRES_MINUTES` (default **60**) and `REFRESH_TOKEN_DAYS` (default **30**).
 3. Explain cache is in-memory only (resets on redeploy; fine for single instance).
-4. Pre-existing broken unit specs: several `*.spec.ts` import named exports that don't exist (`import { Search }`, `{ Home }`, `{ Navbar }`, …) so `ng test` fails to compile repo-wide. Not touched; `ng build` is the CI gate.
+4. `npx ng test --watch=false --browsers=ChromeHeadless` is now **green** (19 specs — stale named imports + missing testbed providers fixed).
 
 ## 5. Next steps candidates (not started)
 
-- Fix the broken unit specs (`ng test` repo-wide — stale named imports)
 - User-saved topics
 - Bill Tracker / Protest Tracker
 

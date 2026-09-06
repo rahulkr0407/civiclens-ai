@@ -1,18 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
-import { SearchBox } from './search-box';
+import { SearchBoxComponent } from './search-box';
 
-describe('SearchBox', () => {
-  let component: SearchBox;
-  let fixture: ComponentFixture<SearchBox>;
+describe('SearchBoxComponent', () => {
+  let component: SearchBoxComponent;
+  let fixture: ComponentFixture<SearchBoxComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SearchBox]
+      imports: [SearchBoxComponent],
+      providers: [provideRouter([])],
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SearchBox);
+    fixture = TestBed.createComponent(SearchBoxComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
