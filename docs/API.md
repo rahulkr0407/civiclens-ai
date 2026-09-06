@@ -410,3 +410,10 @@ neutral, with both sides noted under `viewpoints` and URL-verified sources.
   ]
 }
 ```
+
+## `GET /api/trackers/{tracker_id}`
+
+Fetch a single tracker by its `id` slug (e.g. `fcra-amendment`).
+
+**`200`** — a single tracker document (same shape as one item above).
+**`404`** — `{ "detail": "Tracker not found." }`

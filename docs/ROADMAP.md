@@ -70,8 +70,9 @@
 - [x] `trackers_collection` + `GET /api/trackers` (read-only, `?type=bill|protest`)
 - [x] 13 seeded trackers (9 bills + 4 protests), neutral with both-side viewpoints
 - [x] Trackers page (`/trackers`) with All/Bills/Protests tabs, status badges, expandable cards + sources
+- [x] Tracker detail page (`/tracker/:id`) + `GET /api/trackers/{id}`
 - [x] Deployed via seed against Atlas (no rebuild needed)
 
 ## Phase 12 — Ideas (not started)
-- [ ] Add individual tracker detail pages / deeper history timelines
 - [ ] "Add to AI explain" for trackers (curated explain via Gemini grounded in tracker sources)
+- [ ] Auto-refresh tracker statuses each Parliament session

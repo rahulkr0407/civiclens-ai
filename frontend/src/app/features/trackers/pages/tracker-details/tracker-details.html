@@ -1,0 +1,122 @@
+<div class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+  <!-- Back link -->
+  <a
+    routerLink="/trackers"
+    class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+  >
+    ← Back to Trackers
+  </a>
+
+  <!-- Error -->
+  @if (errorMessage) {
+    <div class="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+      <p class="text-sm text-red-700">{{ errorMessage }}</p>
+      <a
+        routerLink="/trackers"
+        class="mt-1 inline-block text-sm font-medium text-blue-600 hover:underline"
+      >
+        View all trackers
+      </a>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="mt-6 space-y-4">
+      <div class="animate-pulse rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="h-4 w-1/4 rounded bg-slate-200"></div>
+        <div class="mt-4 h-6 w-3/4 rounded bg-slate-100"></div>
+        <div class="mt-3 h-3 w-full rounded bg-slate-100"></div>
+        <div class="mt-2 h-3 w-2/3 rounded bg-slate-100"></div>
+      </div>
+    </div>
+  }
+
+  @if (tracker) {
+    <!-- Header -->
+    <div class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="flex flex-wrap items-center gap-2">
+        <span
+          class="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-indigo-700"
+        >
+          {{ tracker.type }}
+        </span>
+        <span class="text-xs text-slate-400">{{ tracker.category }}</span>
+        <span
+          class="ml-auto rounded-full px-3 py-1 text-xs font-semibold"
+          [ngClass]="statusClass(tracker.status)"
+        >
+          {{ tracker.status }}
+        </span>
+      </div>
+
+      <h1 class="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl">
+        {{ tracker.title }}
+      </h1>
+
+      <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+        <span class="font-medium">{{ tracker.stage }}</span>
+        <span class="text-slate-300">•</span>
+        <span>Updated {{ formatDate(tracker.lastUpdated) }}</span>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        What's happening
+      </h2>
+      <p class="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base">
+        {{ tracker.summary }}
+      </p>
+    </div>
+
+    <!-- Viewpoints -->
+    @if (tracker.viewpoints?.length) {
+      <div class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">
+          Viewpoints
+        </h2>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          @for (viewpoint of tracker.viewpoints; track viewpoint.side) {
+            <div class="rounded-lg bg-slate-50 p-4">
+              <p class="text-sm font-semibold text-slate-700">{{ viewpoint.side }}</p>
+              <p class="mt-1 text-sm leading-relaxed text-slate-600">
+                {{ viewpoint.explanation }}
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Sources -->
+    @if (tracker.sources.length) {
+      <div class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">
+          Sources & verification
+        </h2>
+        <ul class="mt-3 space-y-2">
+          @for (source of tracker.sources; track source.url) {
+            <li>
+              <a
+                href="{{ source.url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sm text-blue-600 hover:underline"
+              >
+                {{ source.name }} →
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Note -->
+    <p class="mt-6 text-center text-xs text-slate-400">
+      Status is as of {{ formatDate(tracker.lastUpdated) }} and may change.
+      Sources are linked for verification.
+    </p>
+  }
+</div>

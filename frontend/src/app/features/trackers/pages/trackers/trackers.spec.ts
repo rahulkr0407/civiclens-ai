@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { provideRouter } from '@angular/router';
 import { TrackersService, Tracker } from '../../../../core/services/trackers.service';
 
 import { TrackersComponent } from './trackers';
@@ -46,6 +47,7 @@ describe('TrackersComponent', () => {
     await TestBed.configureTestingModule({
       imports: [TrackersComponent],
       providers: [
+        provideRouter([]),
         {
           provide: TrackersService,
           useValue: {

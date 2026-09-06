@@ -11,6 +11,7 @@ import { SourcesComponent } from './features/sources/pages/sources/sources';
 import { AboutComponent } from './features/about/pages/about/about';
 import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard';
 import { TrackersComponent } from './features/trackers/pages/trackers/trackers';
+import { TrackerDetailsComponent } from './features/trackers/pages/tracker-details/tracker-details';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -56,6 +57,12 @@ export const routes: Routes = [
   {
     path: 'trackers',
     component: TrackersComponent,
+  },
+
+  // Tracker details
+  {
+    path: 'tracker/:id',
+    component: TrackerDetailsComponent,
   },
 
   // About

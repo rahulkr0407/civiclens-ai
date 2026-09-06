@@ -41,4 +41,8 @@ export class TrackersService {
     const params = type ? new HttpParams().set('type', type) : undefined;
     return this.http.get<TrackersResponse>(this.apiUrl, { params });
   }
+
+  get(id: string): Observable<Tracker> {
+    return this.http.get<Tracker>(`${this.apiUrl}/${id}`);
+  }
 }
