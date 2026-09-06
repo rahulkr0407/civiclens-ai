@@ -116,6 +116,70 @@
 
     }
 
+    <!-- Saved topics -->
+    @if (isLoggedIn && !loading && savedTopics.length > 0) {
+
+      <div class="mb-10">
+
+        <h2 class="text-lg font-bold text-slate-900">
+          ★ Saved topics
+        </h2>
+
+        <p class="mt-1 text-sm text-slate-500">
+          Topics you've bookmarked for later.
+        </p>
+
+        <div class="mt-4 space-y-3">
+
+          @for (topic of savedTopics; track topic.topicId) {
+
+            <article class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm sm:px-6">
+
+              <div class="min-w-0">
+
+                <h3 class="truncate font-bold text-slate-900">
+                  {{ topic.topicTitle }}
+                </h3>
+
+                <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+                  <span>{{ topic.category }}</span>
+                  <span class="text-slate-300">·</span>
+                  <span>⏱ {{ topic.readTime }}</span>
+                  <span class="hidden text-slate-300 sm:inline">·</span>
+                  <span class="hidden sm:inline">{{ formatDate(topic.savedAt) }}</span>
+                </p>
+
+              </div>
+
+              <div class="flex shrink-0 items-center gap-3">
+
+                <a
+                  [routerLink]="['/topic', topic.topicId]"
+                  class="text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+                >
+                  Open →
+                </a>
+
+                <button
+                  type="button"
+                  (click)="unsaveTopic(topic)"
+                  class="text-sm font-semibold text-slate-400 transition hover:text-red-500"
+                >
+                  Remove
+                </button>
+
+              </div>
+
+            </article>
+
+          }
+
+        </div>
+
+      </div>
+
+    }
+
     <!-- Saved items -->
     @if (isLoggedIn && !loading && items.length > 0) {
 

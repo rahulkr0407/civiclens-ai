@@ -31,8 +31,11 @@ describe('TopicDetailsComponent', () => {
           provide: AiService,
           useValue: { explain: () => of({}), chat: () => of({}) },
         },
-        { provide: AuthService, useValue: { isLoggedIn: () => false } },
-        { provide: HistoryService, useValue: {} },
+        { provide: AuthService, useValue: { isLoggedIn: () => true } },
+        {
+          provide: HistoryService,
+          useValue: { listTopics: () => of([]) },
+        },
       ],
     })
     .compileComponents();

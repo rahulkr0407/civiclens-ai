@@ -11,9 +11,22 @@
       {{ topic.category }}
     </span>
 
-    <span class="text-xs text-slate-400">
-      ⏱ {{ topic.readTime }}
-    </span>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-slate-400">
+        ⏱ {{ topic.readTime }}
+      </span>
+
+      <button
+        type="button"
+        (click)="toggleSave($event)"
+        [disabled]="saveLoading"
+        class="rounded-lg p-1 text-lg leading-none transition disabled:opacity-60"
+        [ngClass]="saved ? 'text-yellow-500' : 'text-slate-300 hover:text-yellow-400'"
+        [attr.aria-label]="saved ? 'Remove from saved topics' : 'Save topic'"
+      >
+        {{ saved ? '★' : '☆' }}
+      </button>
+    </div>
 
   </div>
 

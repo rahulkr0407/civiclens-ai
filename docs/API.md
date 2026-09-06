@@ -314,6 +314,59 @@ Remove one saved item. **`200`** `{ "message": "Removed from your dashboard." }`
 · **`404`** if the item id isn't present.
 
 ### `DELETE /api/history`
-
+ 
 Clear the entire saved history. **`200`**
 `{ "message": "Your dashboard has been cleared." }`
+
+---
+
+## Saved topics (bookmarks)
+
+**Status:** live (Phase 10). Per-user saved topics stored inside
+`users_collection` under `savedTopics` (max 100, newest first, deduplicated by
+`topicId`). All routes require `Authorization: Bearer <token>` (401 if
+missing/expired).
+
+### `GET /api/history/topics`
+
+List the signed-in user's saved topics.
+
+**`200`:**
+
+```json
+{
+  "items": [
+    {
+      "topicId": "gst",
+      "topicTitle": "GST",
+      "category": "Economy",
+      "readTime": "5 min",
+      "summary": "An indirect tax system ...",
+      "savedAt": "2026-09-06T06:00:00+00:00"
+    }
+  ]
+}
+```
+
+### `POST /api/history/topics`
+
+Save a topic. **Request body:**
+
+```json
+{
+  "topicId": "gst",
+  "topicTitle": "GST",
+  "category": "Economy",
+  "readTime": "5 min",
+  "summary": "An indirect tax system ..."
+}
+```
+
+`topicId` is required; the other fields are informational (may be empty).
+
+**`200`:** `{ "message": "Topic saved." | "Topic already saved.", "item": {...} }`
+
+### `DELETE /api/history/topics/{topic_id}`
+
+Remove a saved topic. **`200`** `{ "message": "Topic removed from your saved list." }`
+· **`404`** if the topic id isn't saved.

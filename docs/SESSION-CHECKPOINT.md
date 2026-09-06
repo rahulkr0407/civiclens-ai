@@ -13,7 +13,10 @@
 
 | Commit | What |
 |---|---|
-| *(next)* | Phase 8 (JWT auth + Dashboard + saved history) — pending deploy. |
+| *(next)* | Phase 10 (user-saved topics) — pending deploy. |
+| `30054f9` | Phase 9: fixed broken unit specs (`ng test` green, 19 specs). |
+| `a00410f` | Phase 8.5: rotating refresh tokens, refresh/logout endpoints, auto-refresh interceptor, dashboard route guard, sharper quota 502. |
+| `b02298c` | Phase 8: JWT auth + Dashboard + saved history. |
 | `e56bd10` | Hardening: retry-with-backoff, rate-limit 502s, AFC noise suppression, docs. |
 | `1801569` | Phase 7: AI follow-up chat, language toggle, explain cache, Regenerate, 3 new topics (6 total). |
 | `0159569` | Fix AI verification (loose title match, source-host URLs) + `gemini-3.6-flash` default. |
@@ -28,6 +31,7 @@
 - Language toggle: English / Hindi / Hinglish (explain + chat)
 - Regenerate button; rate-limit friendly 502s (quota-exhaustion message names the cause); provider error logging
 - **Dashboard**: per-user saved explanations + conversations (`users_collection.savedHistory`, max 100) — Save buttons on explain/chat, Dashboard page (`/dashboard`, guarded by `authGuard`), delete/clear
+- **Saved topics**: bookmark (★) toggle on topic cards + topic details; Dashboard "Saved topics" section (`users_collection.savedTopics`, max 100, dup-safe; `GET/POST/DELETE /api/history/topics`)
 
 ## 4. Known issues / open items (IMPORTANT)
 
@@ -38,7 +42,6 @@
 
 ## 5. Next steps candidates (not started)
 
-- User-saved topics
 - Bill Tracker / Protest Tracker
 
 ## 6. Dev cheatsheet (Windows / PowerShell)

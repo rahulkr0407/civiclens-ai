@@ -33,6 +33,27 @@ export interface SaveHistoryRequest {
   content: ExplainResponse | SavedChatContent;
 }
 
+export interface SavedTopic {
+  topicId: string;
+  topicTitle: string;
+  category: string;
+  readTime: string;
+  summary: string;
+  savedAt: string;
+}
+
+export interface SavedTopicsResponse {
+  items: SavedTopic[];
+}
+
+export interface SaveTopicRequest {
+  topicId: string;
+  topicTitle: string;
+  category: string;
+  readTime: string;
+  summary: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -61,5 +82,22 @@ export class HistoryService {
 
   clear(): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(this.apiUrl);
+  }
+
+  listTopics(): Observable<SavedTopicsResponse> {
+    return this.http.get<SavedTopicsResponse>(`${this.apiUrl}/topics`);
+  }
+
+  saveTopic(request: SaveTopicRequest): Observable<{ message: string; item: SavedTopic }> {
+    return this.http.post<{ message: string; item: SavedTopic }>(
+      `${this.apiUrl}/topics`,
+      request
+    );
+  }
+
+  deleteTopic(topicId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.apiUrl}/topics/${topicId}`
+    );
   }
 }

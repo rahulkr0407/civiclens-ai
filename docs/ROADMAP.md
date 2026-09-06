@@ -60,6 +60,11 @@
 - [x] `ng test` green (19 specs) — fixed 8 stale named imports + missing TestBed providers/mocks
 - [x] `app.spec.ts` stale default-template title test replaced
 
-## Phase 10 — Ideas (not started)
-- [ ] User-saved topics
+## Phase 10 — User-saved topics (done)
+- [x] `users_collection.savedTopics` persistence (max 100, dup-safe)
+- [x] `/api/history/topics` save / list / delete
+- [x] Bookmark toggle (★) on topic cards + topic details page
+- [x] "Saved topics" section on Dashboard with Remove/Open
+
+## Phase 11 — Ideas (not started)
 - [ ] Bill Tracker / Protest Tracker

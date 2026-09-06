@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { provideRouter } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { HistoryService } from '../../../core/services/history.service';
 
 import { TopicCard } from './topic-card';
 
@@ -10,7 +13,11 @@ describe('TopicCard', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TopicCard],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { isLoggedIn: () => true } },
+        { provide: HistoryService, useValue: { listTopics: () => of([]) } },
+      ],
     })
     .compileComponents();
 

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SearchService } from '../../../../core/services/search';
 import {
@@ -23,7 +24,7 @@ const LANGUAGE_OPTIONS = ['English', 'Hindi', 'Hinglish'] as const;
 @Component({
   selector: 'app-topic-details',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, NgClass],
   templateUrl: './topic-details.html',
 })
 export class TopicDetailsComponent implements OnInit {
@@ -50,6 +51,9 @@ export class TopicDetailsComponent implements OnInit {
   savedChat = false;
   saveMessage = '';
 
+  topicSaved = false;
+  topicSaveLoading = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -75,6 +79,7 @@ export class TopicDetailsComponent implements OnInit {
           (topic: Topic) => topic.id === id
         );
         this.loading = false;
+        this.checkTopicSaved();
       },
       error: () => {
         this.errorMessage =
@@ -243,6 +248,70 @@ export class TopicDetailsComponent implements OnInit {
           this.saveMessage = this.mapSaveError(error);
         },
       });
+  }
+
+  private checkTopicSaved(): void {
+    if (!this.topic || !this.auth.isLoggedIn()) {
+      return;
+    }
+
+    this.historyService.listTopics().subscribe({
+      next: (res) => {
+        this.topicSaved = res.items.some(
+          (t) => t.topicId === this.topic!.id
+        );
+      },
+      error: () => {
+        this.topicSaved = false;
+      },
+    });
+  }
+
+  toggleSaveTopic(): void {
+    if (!this.topic || this.topicSaveLoading) {
+      return;
+    }
+
+    if (!this.requireLogin()) {
+      return;
+    }
+
+    this.topicSaveLoading = true;
+    this.saveMessage = '';
+
+    if (this.topicSaved) {
+      this.historyService.deleteTopic(this.topic.id).subscribe({
+        next: () => {
+          this.topicSaved = false;
+          this.topicSaveLoading = false;
+          this.saveMessage = 'Topic removed from your saved list.';
+        },
+        error: (error) => {
+          this.topicSaveLoading = false;
+          this.saveMessage = this.mapSaveError(error);
+        },
+      });
+    } else {
+      this.historyService
+        .saveTopic({
+          topicId: this.topic.id,
+          topicTitle: this.topic.title,
+          category: this.topic.category,
+          readTime: this.topic.readTime,
+          summary: this.topic.summary,
+        })
+        .subscribe({
+          next: () => {
+            this.topicSaved = true;
+            this.topicSaveLoading = false;
+            this.saveMessage = 'Topic saved for later.';
+          },
+          error: (error) => {
+            this.topicSaveLoading = false;
+            this.saveMessage = this.mapSaveError(error);
+          },
+        });
+    }
   }
 
   private requireLogin(): boolean {

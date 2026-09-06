@@ -5,6 +5,7 @@ import {
   HistoryService,
   SavedChatContent,
   SavedHistoryItem,
+  SavedTopic,
 } from '../../../../core/services/history.service';
 import { ExplainResponse } from '../../../../core/services/ai';
 
@@ -20,6 +21,7 @@ export class DashboardComponent implements OnInit {
   errorMessage = '';
 
   items: SavedHistoryItem[] = [];
+  savedTopics: SavedTopic[] = [];
   isLoggedIn = false;
 
   expanded: Record<string, boolean> = {};
@@ -38,6 +40,31 @@ export class DashboardComponent implements OnInit {
     }
 
     this.loadItems();
+    this.loadSavedTopics();
+  }
+
+  loadSavedTopics(): void {
+    this.historyService.listTopics().subscribe({
+      next: (response) => {
+        this.savedTopics = response.items;
+      },
+      error: (error) => {
+        this.errorMessage = this.mapError(error);
+      },
+    });
+  }
+
+  unsaveTopic(topic: SavedTopic): void {
+    this.historyService.deleteTopic(topic.topicId).subscribe({
+      next: () => {
+        this.savedTopics = this.savedTopics.filter(
+          (saved) => saved.topicId !== topic.topicId
+        );
+      },
+      error: (error) => {
+        this.errorMessage = this.mapError(error);
+      },
+    });
   }
 
   loadItems(): void {
