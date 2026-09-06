@@ -115,6 +115,14 @@
                   {{ tracker.status }}
                 </span>
 
+                @if (isStale(tracker.lastUpdated)) {
+                  <span
+                    class="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600"
+                  >
+                    May be outdated
+                  </span>
+                }
+
                 <!-- Expand / collapse -->
                 <button
                   type="button"

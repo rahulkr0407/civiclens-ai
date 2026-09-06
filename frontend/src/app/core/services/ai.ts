@@ -46,6 +46,12 @@ export interface ChatRequest {
   language?: string;
 }
 
+export interface ChatTrackerRequest {
+  tracker_id: string;
+  messages: ChatMessage[];
+  language?: string;
+}
+
 export interface ChatResponse {
   reply: string;
 }
@@ -74,6 +80,13 @@ export class AiService {
   chat(request: ChatRequest): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(
       `${API_BASE_URL}/ai/chat`,
+      request
+    );
+  }
+
+  chatTracker(request: ChatTrackerRequest): Observable<ChatResponse> {
+    return this.http.post<ChatResponse>(
+      `${API_BASE_URL}/ai/chat-tracker`,
       request
     );
   }

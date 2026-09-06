@@ -77,6 +77,11 @@
 - [x] `POST /api/ai/explain-tracker` (grounded in tracker doc + official sources, verified, cached 10 min)
 - [x] "Explain with AI" on tracker detail pages (language toggle, Regenerate, Save to dashboard)
 
-## Phase 13 — Ideas (not started)
-- [ ] Auto-refresh tracker statuses each Parliament session
-- [ ] Follow-up chat for trackers (grounded like `/api/ai/chat`)
+## Phase 13 — Tracker chat + staleness (done)
+- [x] `POST /api/ai/chat-tracker` (grounded in tracker doc + official sources, URL-checked)
+- [x] Follow-up chat on tracker detail pages (last-6-turns, Save conversation to dashboard)
+- [x] Staleness badge (list + detail): flags trackers whose `lastUpdated` is older than 14 days
+
+## Phase 14 — Ideas (not started)
+- [ ] Auto-refresh tracker statuses each Parliament session (cron / scheduled seed)
+- [ ] Direct link+save trackers alongside saved topics

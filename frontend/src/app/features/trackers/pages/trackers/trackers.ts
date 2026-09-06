@@ -87,6 +87,15 @@ export class TrackersComponent implements OnInit {
     }
   }
 
+  isStale(value: string, days = 14): boolean {
+    const date = new Date(value);
+    if (isNaN(date.getTime())) {
+      return false;
+    }
+    const msPerDay = 24 * 60 * 60 * 1000;
+    return Date.now() - date.getTime() > days * msPerDay;
+  }
+
   private mapError(error: any): string {
     return (
       error.error?.detail ||

@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TrackersService, Tracker } from '../../../../core/services/trackers.service';
 import {
   AiService,
+  ChatMessage,
   ExplainResponse,
   ExplainTrackerRequest,
 } from '../../../../core/services/ai';
@@ -41,6 +42,12 @@ export class TrackerDetailsComponent implements OnInit {
 
   savedExplain = false;
   saveMessage = '';
+
+  chatMessages: ChatMessage[] = [];
+  chatInput = '';
+  chatLoading = false;
+  chatError = '';
+  savedChat = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -81,6 +88,15 @@ export class TrackerDetailsComponent implements OnInit {
     } catch {
       return value;
     }
+  }
+
+  isStale(value: string, days = 14): boolean {
+    const date = new Date(value);
+    if (isNaN(date.getTime())) {
+      return false;
+    }
+    const msPerDay = 24 * 60 * 60 * 1000;
+    return Date.now() - date.getTime() > days * msPerDay;
   }
 
   regenerateExplanation(): void {
@@ -142,6 +158,85 @@ export class TrackerDetailsComponent implements OnInit {
         next: () => {
           this.savedExplain = true;
           this.saveMessage = 'Explanation saved to your dashboard.';
+        },
+        error: (error) => {
+          this.saveMessage = this.mapSaveError(error);
+        },
+      });
+  }
+
+  sendChatMessage(): void {
+    const content = this.chatInput.trim();
+
+    if (!content || !this.tracker || this.chatLoading) {
+      return;
+    }
+
+    const userMessage: ChatMessage = { role: 'user', content };
+    this.chatMessages = [...this.chatMessages, userMessage];
+    this.chatInput = '';
+    this.chatLoading = true;
+    this.chatError = '';
+
+    this.aiService
+      .chatTracker({
+        tracker_id: this.tracker.id,
+        messages: this.chatMessages,
+        language: this.language,
+      })
+      .subscribe({
+        next: (result) => {
+          this.chatMessages = [
+            ...this.chatMessages,
+            { role: 'assistant', content: result.reply },
+          ];
+          this.chatLoading = false;
+        },
+        error: (error) => {
+          this.chatLoading = false;
+          this.chatError = this.mapAiError(error);
+        },
+      });
+  }
+
+  clearChat(): void {
+    this.chatMessages = [];
+    this.chatError = '';
+    this.savedChat = false;
+  }
+
+  saveChat(): void {
+    if (!this.tracker || !this.chatMessages.length) {
+      return;
+    }
+
+    if (!this.requireLogin()) {
+      return;
+    }
+
+    const lastMessage = this.chatMessages[this.chatMessages.length - 1];
+
+    if (lastMessage.role !== 'assistant') {
+      return;
+    }
+
+    this.saveMessage = '';
+
+    this.historyService
+      .save({
+        type: 'chat',
+        topicId: this.tracker.id,
+        topicTitle: this.tracker.title,
+        language: this.language,
+        content: {
+          messages: this.chatMessages,
+          reply: lastMessage.content,
+        },
+      })
+      .subscribe({
+        next: () => {
+          this.savedChat = true;
+          this.saveMessage = 'Conversation saved to your dashboard.';
         },
         error: (error) => {
           this.saveMessage = this.mapSaveError(error);

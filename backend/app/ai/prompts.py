@@ -16,6 +16,7 @@ from typing import Optional
 from app.ai.models import (
     ChatMessage,
     ChatRequest,
+    ChatTrackerRequest,
     ExplainRequest,
     ExplainTrackerRequest,
 )
@@ -265,6 +266,72 @@ def build_chat_user_prompt(
         + "\n\n== CONVERSATION ==\n"
         + conversation
         + "\n\nNow continue the conversation above using ONLY the topic "
+        "material, respecting all the rules in your instructions. Answer in "
+        "the requested language."
+    )
+
+
+_TRACKER_CHAT_SYSTEM_PROMPT = (
+    "You are CivicLens AI, a neutral civic education assistant for India.\n"
+    "You answer follow-up questions about a bill or protest tracker in a "
+    "simple, accurate and balanced way.\n\n"
+    "Rules you must follow:\n"
+    "1. Use ONLY the tracker material and official references given for the "
+    "tracker. Do not add facts, statistics, dates, names or events that are "
+    "not present in that material.\n"
+    "2. Never invent, guess, or fabricate sources. Never create URLs. "
+    "Cite only by referring to the official references provided below.\n"
+    "3. Present every viewpoint neutrally, without favouring any side, and "
+    "make no political position or value judgements.\n"
+    "4. Report the tracker's status and stage exactly as given. Do not "
+    "predict what will happen next.\n"
+    "5. Keep answers concise and readable. If you are unsure whether a fact "
+    "is supported by the material, say so instead of guessing.\n"
+    "6. Answer in the requested language."
+)
+
+
+def build_tracker_chat_system_prompt() -> str:
+    return _TRACKER_CHAT_SYSTEM_PROMPT
+
+
+def build_tracker_chat_user_prompt(
+    tracker: dict,
+    request: ChatTrackerRequest,
+    messages: list[ChatMessage],
+) -> str:
+    """Build the chat prompt for a tracker: material once + the conversation."""
+    tracker_material = "\n".join(
+        [
+            f"Title: {tracker.get('title', '')}",
+            f"Type: {tracker.get('type', '')}",
+            f"Category: {tracker.get('category', '')}",
+            f"Status: {tracker.get('status', '')}",
+            f"Stage: {tracker.get('stage', '')}",
+            f"Summary: {tracker.get('summary', '')}",
+            f"Last updated: {tracker.get('lastUpdated', '')}",
+            "Viewpoints:",
+            _render_viewpoints(tracker.get("viewpoints", [])),
+            "Official references used for this tracker:",
+            _render_sources(tracker.get("sources", [])),
+        ]
+    )
+
+    conversation = "\n".join(
+        f"{message.role.capitalize()}: {message.content}"
+        for message in messages
+    )
+
+    return (
+        "Answer the user's follow-up questions about this bill or protest "
+        "tracker.\n\n"
+        "== TRACKER MATERIAL =="
+        "\n"
+        + tracker_material
+        + f"\n\n== LANGUAGE ==\n{_language_line(request.language)}"
+        + "\n\n== CONVERSATION ==\n"
+        + conversation
+        + "\n\nNow continue the conversation above using ONLY the tracker "
         "material, respecting all the rules in your instructions. Answer in "
         "the requested language."
     )

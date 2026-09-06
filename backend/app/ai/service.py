@@ -16,6 +16,7 @@ import time
 
 from app.ai.models import (
     ChatRequest,
+    ChatTrackerRequest,
     ExplainRequest,
     ExplainResponse,
     ExplainTrackerRequest,
@@ -24,6 +25,8 @@ from app.ai.prompts import (
     build_chat_system_prompt,
     build_chat_user_prompt,
     build_system_prompt,
+    build_tracker_chat_system_prompt,
+    build_tracker_chat_user_prompt,
     build_tracker_system_prompt,
     build_tracker_user_prompt,
     build_user_prompt,
@@ -213,6 +216,30 @@ def generate_tracker(
 
 def chat(request: ChatRequest, topic: dict) -> str:
     """Answer a follow-up question, grounded in the topic material."""
+    messages = request.messages[-ChatHistory:]
+    return _generate_text_response(
+        build_chat_user_prompt(topic, request, messages),
+        build_chat_system_prompt(),
+        "an answer",
+    )
+
+
+def chat_tracker(request: ChatTrackerRequest, tracker: dict) -> str:
+    """Answer a follow-up question, grounded in the tracker material."""
+    messages = request.messages[-ChatHistory:]
+    return _generate_text_response(
+        build_tracker_chat_user_prompt(tracker, request, messages),
+        build_tracker_chat_system_prompt(),
+        "an answer",
+    )
+
+
+def _generate_text_response(
+    prompt: str,
+    system_instruction: str,
+    label: str,
+) -> str:
+    """Call the provider with plain-text output and return the trimmed text."""
     api_key = os.getenv(GEMINI_API_KEY_ENV)
     if not api_key:
         raise AINotConfiguredError(
@@ -221,7 +248,6 @@ def chat(request: ChatRequest, topic: dict) -> str:
         )
 
     model = os.getenv(GEMINI_MODEL_ENV, DEFAULT_GEMINI_MODEL)
-    messages = request.messages[-ChatHistory:]
 
     try:
         from google import genai
@@ -232,9 +258,9 @@ def chat(request: ChatRequest, topic: dict) -> str:
         response = _call_with_retry(
             lambda: client.models.generate_content(
                 model=model,
-                contents=build_chat_user_prompt(topic, request, messages),
+                contents=prompt,
                 config=types.GenerateContentConfig(
-                    system_instruction=build_chat_system_prompt(),
+                    system_instruction=system_instruction,
                     temperature=GEMINI_TEMPERATURE,
                     automatic_function_calling=types.AutomaticFunctionCallingConfig(
                         disable=True
@@ -253,9 +279,9 @@ def chat(request: ChatRequest, topic: dict) -> str:
     except AIProviderError:
         raise
     except Exception as exc:
-        print(f"[civiclens-ai] chat() provider error: {type(exc).__name__}: {exc}", flush=True)
+        print(f"[civiclens-ai] provider error: {type(exc).__name__}: {exc}", flush=True)
         raise AIProviderError(
-            f"The AI provider could not answer the question: {exc}",
+            f"The AI provider could not generate {label}: {exc}",
             status_code=_provider_status_code(exc),
         ) from exc
 

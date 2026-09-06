@@ -258,6 +258,52 @@ its official sources. The last 6 conversation turns are sent to the provider.
 
 ---
 
+## `POST /api/ai/chat-tracker`
+
+Answer follow-up questions about a **bill or protest tracker**, grounded in the
+tracker document and its official sources. Same contract as `/api/ai/chat`.
+The last 6 conversation turns are sent to the provider.
+
+**Status:** live (Phase 13).
+
+**Request body:**
+
+```json
+{
+  "tracker_id": "fcra-amendment",
+  "messages": [
+    { "role": "user", "content": "What does this bill change?" }
+  ],
+  "language": "English"
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `tracker_id` | string | yes | Tracker id from `/api/trackers` |
+| `messages` | array of `{role, content}` | yes | `role` is `user` or `assistant`; oldest turns beyond the last 6 are trimmed server-side |
+| `language` | string | no | `English`, `Hindi`, `Hinglish`; default `English` |
+
+**`200`:**
+
+```json
+{ "reply": "The Bill changes the Foreign Contribution (Regulation) Act ..." }
+```
+
+**Error codes:**
+
+| Code | Meaning |
+|---|---|
+| `404` | Tracker not found |
+| `422` | Empty `messages` or validation error |
+| `502` | AI provider unavailable / rate-limited, or reply cited a URL outside the tracker's official sources (rejected by verification) |
+| `500` | Unexpected server error |
+
+Returns the same rate-limit-friendly `502` messaging as the other AI
+endpoints when the free-tier daily quota is exhausted.
+
+---
+
 ## `POST /api/ai/explain-tracker`
 
 Generate an age/education-appropriate, neutral explanation for a **bill or

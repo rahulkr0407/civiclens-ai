@@ -55,7 +55,10 @@ describe('TrackerDetailsComponent', () => {
         },
         {
           provide: AiService,
-          useValue: { explainTracker: () => of(mockAiResult) },
+          useValue: {
+            explainTracker: () => of(mockAiResult),
+            chatTracker: () => of({ reply: 'A helpful answer.' }),
+          },
         },
         { provide: AuthService, useValue: { isLoggedIn: () => true } },
         {
@@ -104,6 +107,21 @@ describe('TrackerDetailsComponent', () => {
     );
     component.explainWithAI();
     expect(component.aiError).toBe('Quota exceeded');
+  });
+
+  it('should send a chat message and store the assistant reply', () => {
+    spyOn(aiService, 'chatTracker').and.returnValue(of({ reply: 'A helpful answer.' }));
+    fixture.detectChanges();
+    component.chatInput = 'What does it change?';
+    component.sendChatMessage();
+    expect(component.chatMessages.length).toBe(2);
+    expect(component.chatMessages[1].content).toBe('A helpful answer.');
+    expect(component.chatLoading).toBeFalse();
+  });
+
+  it('should detect staleness from the lastUpdated date', () => {
+    expect(component.isStale('2000-01-01')).toBeTrue();
+    expect(component.isStale(new Date().toISOString())).toBeFalse();
   });
 
   it('should assign an appropriate badge class by status', () => {

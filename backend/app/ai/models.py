@@ -45,6 +45,12 @@ class ChatRequest(BaseModel):
     language: str = "English"
 
 
+class ChatTrackerRequest(BaseModel):
+    tracker_id: str
+    messages: list[ChatMessage]
+    language: str = "English"
+
+
 class ChatResponse(BaseModel):
     reply: str
 

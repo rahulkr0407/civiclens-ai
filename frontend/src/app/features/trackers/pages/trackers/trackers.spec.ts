@@ -94,6 +94,11 @@ describe('TrackersComponent', () => {
     expect(component.expanded['fcra-amendment']).toBeFalse();
   });
 
+  it('should detect staleness from the lastUpdated date', () => {
+    expect(component.isStale('2000-01-01')).toBeTrue();
+    expect(component.isStale(new Date().toISOString())).toBeFalse();
+  });
+
   it('should assign an appropriate badge class by status', () => {
     expect(component.statusClass('Passed by both Houses')).toEqual({
       'bg-green-50 text-green-700': true,

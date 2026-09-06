@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from app.ai.models import (
     ChatRequest,
     ChatResponse,
+    ChatTrackerRequest,
     ExplainRequest,
     ExplainResponse,
     ExplainTrackerRequest,
@@ -14,6 +15,7 @@ from app.ai.service import (
     AINotConfiguredError,
     AIProviderError,
     chat,
+    chat_tracker,
     generate,
     generate_tracker,
     verify,
@@ -160,6 +162,40 @@ def explain_tracker(request: ExplainTrackerRequest):
 
     _store_explain(cache_key, response)
     return response
+
+
+@router.post("/ai/chat-tracker", response_model=ChatResponse)
+def chat_tracker_route(request: ChatTrackerRequest):
+
+    tracker = trackers_collection.find_one(
+        {"id": request.tracker_id},
+        {"_id": 0},
+    )
+
+    if not tracker:
+        raise HTTPException(
+            status_code=404,
+            detail="Tracker not found.",
+        )
+
+    if not request.messages:
+        raise HTTPException(
+            status_code=422,
+            detail="A chat message is required.",
+        )
+
+    try:
+        reply = chat_tracker(request, tracker)
+    except (AINotConfiguredError, AIProviderError) as exc:
+        raise _ai_error_response(exc, "answering your question") from exc
+
+    if not verify_chat(reply, tracker):
+        raise HTTPException(
+            status_code=502,
+            detail="The AI response could not be verified against the tracker sources. Please try again.",
+        )
+
+    return ChatResponse(reply=reply)
 
 
 @router.post("/ai/chat", response_model=ChatResponse)
