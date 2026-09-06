@@ -38,6 +38,11 @@
         Sources
       </a>
 
+      <!-- Trackers -->
+      <a routerLink="/trackers" class="font-medium text-slate-600 transition hover:text-blue-600">
+        Trackers
+      </a>
+
       <!-- About -->
       <a routerLink="/about" class="font-medium text-slate-600 transition hover:text-blue-600">
         About
@@ -157,6 +162,15 @@
           class="rounded-lg px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-100 hover:text-blue-600"
         >
           Sources
+        </a>
+
+        <!-- Trackers -->
+        <a
+          routerLink="/trackers"
+          (click)="closeMobileMenu()"
+          class="rounded-lg px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-100 hover:text-blue-600"
+        >
+          Trackers
         </a>
 
         <!-- About -->

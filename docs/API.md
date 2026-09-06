@@ -370,3 +370,43 @@ Save a topic. **Request body:**
 
 Remove a saved topic. **`200`** `{ "message": "Topic removed from your saved list." }`
 · **`404`** if the topic id isn't saved.
+
+---
+
+## `GET /api/trackers`
+
+Civic trackers — bills before Parliament and active/concluded protests.
+Read-only; content is curated and seeded (`python -m app.seed_trackers`),
+neutral, with both sides noted under `viewpoints` and URL-verified sources.
+
+**Query params:**
+
+| Param | Type | Notes |
+|---|---|---|
+| `type` | string | optional; `bill` or `protest`. Omitted → all items. Any other value → all items. |
+
+**`200`** — items sorted by `lastUpdated` descending:
+
+```json
+{
+  "items": [
+    {
+      "id": "fcra-amendment",
+      "type": "bill",
+      "title": "Foreign Contribution (Regulation) Amendment Bill, 2026",
+      "category": "Governance",
+      "status": "In Committee",
+      "stage": "Referred to a Joint Parliamentary Committee (Aug 2026)",
+      "summary": "The Bill amends the Foreign Contribution (Regulation) Act, 2010 ...",
+      "viewpoints": [
+        { "side": "Government view", "explanation": "..." },
+        { "side": "Concerns raised", "explanation": "..." }
+      ],
+      "lastUpdated": "2026-08-12",
+      "sources": [
+        { "name": "PRS Legislative Research — Bill page", "url": "https://prsindia.org/billtrack/..." }
+      ]
+    }
+  ]
+}
+```

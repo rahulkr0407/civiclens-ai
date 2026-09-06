@@ -66,5 +66,12 @@
 - [x] Bookmark toggle (★) on topic cards + topic details page
 - [x] "Saved topics" section on Dashboard with Remove/Open
 
-## Phase 11 — Ideas (not started)
-- [ ] Bill Tracker / Protest Tracker
+## Phase 11 — Civic Trackers: Bills & Protests (done)
+- [x] `trackers_collection` + `GET /api/trackers` (read-only, `?type=bill|protest`)
+- [x] 13 seeded trackers (9 bills + 4 protests), neutral with both-side viewpoints
+- [x] Trackers page (`/trackers`) with All/Bills/Protests tabs, status badges, expandable cards + sources
+- [x] Deployed via seed against Atlas (no rebuild needed)
+
+## Phase 12 — Ideas (not started)
+- [ ] Add individual tracker detail pages / deeper history timelines
+- [ ] "Add to AI explain" for trackers (curated explain via Gemini grounded in tracker sources)

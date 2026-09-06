@@ -13,7 +13,7 @@
 
 | Commit | What |
 |---|---|
-| *(next)* | Phase 10 (user-saved topics) — pending deploy. |
+| `fd55cc1` | Phase 10: user-saved topics (bookmarks, saved-topics dashboard, saved-topics API). |
 | `30054f9` | Phase 9: fixed broken unit specs (`ng test` green, 19 specs). |
 | `a00410f` | Phase 8.5: rotating refresh tokens, refresh/logout endpoints, auto-refresh interceptor, dashboard route guard, sharper quota 502. |
 | `b02298c` | Phase 8: JWT auth + Dashboard + saved history. |
@@ -32,17 +32,19 @@
 - Regenerate button; rate-limit friendly 502s (quota-exhaustion message names the cause); provider error logging
 - **Dashboard**: per-user saved explanations + conversations (`users_collection.savedHistory`, max 100) — Save buttons on explain/chat, Dashboard page (`/dashboard`, guarded by `authGuard`), delete/clear
 - **Saved topics**: bookmark (★) toggle on topic cards + topic details; Dashboard "Saved topics" section (`users_collection.savedTopics`, max 100, dup-safe; `GET/POST/DELETE /api/history/topics`)
+- **Civic Trackers**: `trackers_collection` (9 bills + 4 protests, neutral, both-side viewpoints, official sources); `GET /api/trackers` (`?type=bill|protest`); Trackers page `/trackers` with All/Bills/Protests tabs, status badges, expandable cards with viewpoints + sources. Content curated + seeded via `python -m app.seed_trackers`.
 
 ## 4. Known issues / open items (IMPORTANT)
 
 1. **Free-tier quota: 20 requests/day for gemini-3.6-flash** (`generate_content_free_tier_requests`, limit 20). When exhausted the API returns 502 with a rate-limit hint until reset/raised. This was the root cause of the earlier "intermittent 502s" — NOT a code bug. **The previously leaked GEMINI_API_KEY has been rotated** (new key in a new AI Studio project; set on Render).
 2. **`JWT_SECRET` must be set on Render** (backend service env var) or the API will refuse to start. Local value is in `backend/.env` (not committed). Optional `JWT_EXPIRES_MINUTES` (default **60**) and `REFRESH_TOKEN_DAYS` (default **30**).
 3. Explain cache is in-memory only (resets on redeploy; fine for single instance).
-4. `npx ng test --watch=false --browsers=ChromeHeadless` is now **green** (19 specs — stale named imports + missing testbed providers fixed).
+4. `npx ng test --watch=false --browsers=ChromeHeadless` is now **green** (24 specs — incl. Trackers page spec).
 
 ## 5. Next steps candidates (not started)
 
-- Bill Tracker / Protest Tracker
+- Individual tracker detail pages / history timelines; "AI explain" for trackers
+- (Old) Bill/Protest Trackers — DONE via Phase 11 (see commits)
 
 ## 6. Dev cheatsheet (Windows / PowerShell)
 
@@ -69,7 +71,7 @@ $env:PYTHONIOENCODING='utf-8'
 
 ## 7. Guardrails
 
-- NEVER modify `backend/app/db/database.py` or `backend/app/main.py`.
+- NEVER modify `backend/app/db/database.py` or `backend/app/main.py` — EXCEPT the two one-line additions already applied for Phase 11: `trackers_collection = db["trackers"]` (database.py) and the trackers router import+include (main.py). Ask before further changes.
 - NEVER commit `.env`, `.venv`, `__pycache__`, `frontend/dist`, or API keys.
 - Content must be politically neutral with **URL-verified official sources** only.
 - When encountering the SDK "Direct use of automatic function calling" warning: gone since commit `e56bd10` (config `AutomaticFunctionCallingConfig(disable=True)`).

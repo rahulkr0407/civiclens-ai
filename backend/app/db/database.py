@@ -15,6 +15,7 @@ client = MongoClient(MONGO_URL)
 db = client["civiclens"]
 topics_collection = db["topics"]
 users_collection = db["users"]
+trackers_collection = db["trackers"]
 
 try:
     client.admin.command("ping")
