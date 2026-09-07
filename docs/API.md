@@ -1,18 +1,110 @@
-# CivicLens AI — API Reference
+# CivicLens AI — API Documentation
 
-Base URLs:
-- Local: `http://localhost:8000`
-- Deployed backend (Render): `https://civiclens-ai-1-f708.onrender.com`
+## Base URL
+
+```
+http://localhost:8000
+```
+
+Deployed backend (Render):
+
+```
+https://civiclens-ai-1-f708.onrender.com
+```
 
 All routes are served under the `/api` prefix.
 
 ---
 
-## `GET /api/topics`
+## Authentication
+
+Most endpoints require authentication. Include the access token in the `Authorization` header:
+
+```
+Authorization: Bearer <access_token>
+```
+
+The `access_token` is a JWT (HS256) valid for 60 minutes (`JWT_EXPIRES_MINUTES`). The `refresh_token` is a random 256-bit value valid for 30 days (`REFRESH_TOKEN_DAYS`); only its SHA-256 hash is stored on the server.
+
+The frontend stores both tokens client-side and clears them on logout. With **"Remember me"** checked they live in `localStorage`, otherwise in `sessionStorage`. An HTTP interceptor transparently refreshes the access token on an expired-token `401`.
+
+---
+
+## Response Format
+
+### Success Response
+
+Successful responses are plain JSON. Typical shapes:
+
+- `{ "message": "Description of what happened" }` — operation messages
+- `{ "items": [ ... ] }` — list responses (history, saved topics, trackers)
+- A resource object or array directly — e.g. `/api/topics`, `/api/auth/me`
+
+### Error Response
+
+Errors use the FastAPI shape:
+
+```json
+{
+  "detail": "Error description"
+}
+```
+
+If an operation succeeds even when there is nothing meaningful to return, the API
+returns a `200` with an `{ "message": ... }` body rather than an error.
+
+Note: no endpoints are paginated — all list endpoints return the full set.
+
+### HTTP Status Codes
+
+| Code | Meaning                                             |
+| ---- | --------------------------------------------------- |
+| 200  | Success                                             |
+| 400  | Bad Request (duplicate email, invalid reset link)   |
+| 401  | Unauthorized (invalid/missing/expired token)        |
+| 404  | Not Found (unknown topic, tracker, saved item)      |
+| 422  | Validation Error (missing/malformed request fields) |
+| 500  | Internal Server Error                               |
+| 502  | AI provider unavailable / rate-limited / unverified |
+| 503  | Service unavailable (e.g. Google Sign-In unconfigured) |
+
+---
+
+# Endpoints
+
+---
+
+## Configuration
+
+### GET `/api/config`
+
+Public, non-sensitive frontend configuration.
+
+**Auth Required:** No
+
+**Response (200):**
+
+```json
+{
+  "googleClientId": "1234567890-....apps.googleusercontent.com"
+}
+```
+
+**Note:** `googleClientId` is `null` when Google Sign-In is not configured
+server-side (no `GOOGLE_CLIENT_ID` env var) — the frontend hides the Google
+button in that case.
+
+---
+
+## Topics
+
+### GET `/api/topics`
 
 Returns all civic topics stored in MongoDB.
 
-**Response `200`** — array of topic documents:
+**Auth Required:** No
+
+**Response (200):** array of topic documents
 
 ```json
 [
@@ -38,11 +130,15 @@ Returns all civic topics stored in MongoDB.
 
 ---
 
-## `POST /api/auth/signup`
+## Authentication
+
+### POST `/api/auth/signup`
 
 Create a user account with a learning profile.
 
-**Request body:**
+**Auth Required:** No
+
+**Request Body:**
 
 ```json
 {
@@ -55,23 +151,46 @@ Create a user account with a learning profile.
 }
 ```
 
-**Responses:**
-- `200` — `{ "message": "Account created successfully." }`
+**Validation Rules:**
+
+- `fullName`: Required, non-empty string
+- `email`: Required, valid email format, unique
+- `password`: Required, string (≥ 6 characters recommended)
+- `age`: Required, integer (learning profile)
+- `educationLevel`: Required, string (e.g. `School`, `College`, `Professional`)
+- `interests`: Required, array of strings
+
+**Response (200):**
+
+```json
+{
+  "message": "Account created successfully."
+}
+```
+
+**Errors:**
+
 - `400` — `{ "detail": "An account with this email already exists." }`
+- `422` — Validation failed
 
 ---
 
-## `POST /api/auth/login`
+### POST `/api/auth/login`
 
-Authenticate a user.
+Authenticate a user with email and password.
 
-**Request body:**
+**Auth Required:** No
+
+**Request Body:**
 
 ```json
-{ "email": "user@example.com", "password": "secret123" }
+{
+  "email": "user@example.com",
+  "password": "secret123"
+}
 ```
 
-**`200`:**
+**Response (200):**
 
 ```json
 {
@@ -89,29 +208,146 @@ Authenticate a user.
 }
 ```
 
-**`401`:** `{ "detail": "Invalid email or password." }`
+**Errors:**
 
-The `access_token` is a JWT (HS256) valid for 60 minutes
-(`JWT_EXPIRES_MINUTES`). The `refresh_token` is a random 256-bit value valid
-for 30 days (`REFRESH_TOKEN_DAYS`); only its SHA-256 hash is stored server-side.
-Send `Authorization: Bearer <token>` on protected routes. The frontend stores
-both tokens in `localStorage` and transparently refreshes on an expired-token
-`401` via the HTTP interceptor.
+- `401` — `{ "detail": "Invalid email or password." }`
+- `422` — Validation failed
+
+**Notes:** `access_token` expires per `JWT_EXPIRES_MINUTES` (default 60).
+`refresh_token` is valid for `REFRESH_TOKEN_DAYS` (default 30); storage and
+auto-refresh are described under [Authentication](#authentication).
 
 ---
 
-## `POST /api/auth/refresh`
+### POST `/api/auth/google`
 
-Exchange a valid refresh token for a fresh pair. The old refresh token is
-**rotated** (revoked) on success.
+Sign in (or auto-sign up) with a Google Identity Services ID token.
 
-**Request body:**
+**Auth Required:** No
+
+**Request Body:**
 
 ```json
-{ "refresh_token": "<refresh_token>" }
+{
+  "credential": "<google_id_token>"
+}
 ```
 
-**`200`:**
+**Validation Rules:**
+
+- `credential`: Required, a Google ID token
+
+**Verification:** the backend fetches Google's JWKS and verifies signature,
+issuer (`accounts.google.com`), audience (`GOOGLE_CLIENT_ID`) and that an email
+is present before trusting the token. If no account exists for the email, one is
+auto-created from the Google profile; otherwise the Google identity is linked to
+the existing account.
+
+**Response (200):** same shape as `/api/auth/login` (`access_token`,
+`refresh_token`, `user`, …)
+
+**Errors:**
+
+- `400` — `{ "detail": "Your Google account has no email address associated with it." }`
+- `401` — `{ "detail": "Invalid Google credential. Please try again." }` (also covers invalid issuer)
+- `503` — `{ "detail": "Google Sign-In is not configured on the server yet." }`
+- `422` — Validation failed
+
+---
+
+### POST `/api/auth/forgot-password`
+
+Request a one-time password-reset link. Always returns the same message whether
+or not the email exists (it never reveals account existence).
+
+**Auth Required:** No
+
+**Request Body:**
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "message": "If an account exists with that email, a reset link has been sent."
+}
+```
+
+**Notes:** when SMTP is configured, the reset URL is emailed to the address
+(`FRONTEND_URL` builds the link). When SMTP is **not** configured, the response
+also includes a development-only link so the flow is testable locally:
+
+```json
+{
+  "message": "If an account exists with that email, a reset link has been sent.",
+  "dev_reset_link": "http://localhost:4200/reset-password?token=<token>"
+}
+```
+
+---
+
+### POST `/api/auth/reset-password`
+
+Complete a password reset with the token from the reset link.
+
+**Auth Required:** No
+
+**Request Body:**
+
+```json
+{
+  "token": "<reset_token>",
+  "new_password": "newsecret123"
+}
+```
+
+**Validation Rules:**
+
+- `token`: Required, the one-time token from the reset link
+- `new_password`: Required, at least 6 characters
+
+**Side Effects:**
+
+- Rehashes the password
+- Invalidates the reset token
+- Revokes **all active sessions** (refresh token cleared)
+
+**Response (200):**
+
+```json
+{
+  "message": "Password updated successfully. You can now sign in."
+}
+```
+
+**Errors:**
+
+- `400` — `{ "detail": "This reset link is invalid or has expired. Please request a new one." }`
+- `400` — `{ "detail": "Password must be at least 6 characters." }`
+
+---
+
+### POST `/api/auth/refresh`
+
+Exchange a valid refresh token for a fresh token pair. The old refresh token is
+**rotated** (revoked) on success.
+
+**Auth Required:** No (uses the refresh token in the body)
+
+**Request Body:**
+
+```json
+{
+  "refresh_token": "<refresh_token>"
+}
+```
+
+**Response (200):**
 
 ```json
 {
@@ -121,26 +357,48 @@ Exchange a valid refresh token for a fresh pair. The old refresh token is
 }
 ```
 
-**`401`:** invalid, revoked, or expired refresh token
-(`{ "detail": "Your session has expired. Please log in again." }`). **`422`** if
-the field is missing/invalid.
+**Errors:**
+
+- `401` — `{ "detail": "No refresh token provided." }`
+- `401` — `{ "detail": "Your session has expired. Please log in again." }` (invalid, revoked, or expired refresh token)
+- `422` — Validation failed
 
 ---
 
-## `POST /api/auth/logout`
+### POST `/api/auth/logout`
 
-Revoke the given refresh token (sign out on the server so the token can't be
-reused). **Request body:** `{ "refresh_token": "<token>" }` — `200` even if the
-token was already revoked.
+Revoke the given refresh token (sign out on the server so the token can't be reused).
+
+**Auth Required:** No (takes the refresh token in the body)
+
+**Request Body:**
+
+```json
+{
+  "refresh_token": "<refresh_token>"
+}
+```
+
+**Side Effects:** clears the stored `refreshTokenHash` / expiry. Returns `200`
+even if the token was already revoked.
+
+**Response (200):**
+
+```json
+{
+  "message": "Logged out successfully."
+}
+```
 
 ---
 
-## `GET /api/auth/me`
+### GET `/api/auth/me`
 
-Returns the profile for the currently authenticated user. Requires a valid
-Bearer token (uses the same `Authorization` header as login's `access_token`).
+Get the currently authenticated user's profile.
 
-**`200`:**
+**Auth Required:** Yes
+
+**Response (200):**
 
 ```json
 {
@@ -152,18 +410,24 @@ Bearer token (uses the same `Authorization` header as login's `access_token`).
 }
 ```
 
-**`401`:** missing/invalid/expired token.
+**Errors:**
+
+- `401` — missing/invalid/expired token
 
 ---
 
-## `POST /api/ai/explain`
+## AI
+
+### POST `/api/ai/explain`
 
 Generate an age/education-appropriate, neutral explanation for a topic.
 
 **Status:** live (Phase 6–7). Backed by Gemini, verified against the topic's
 official sources, cached in-memory for 10 minutes (same topic + profile).
 
-**Request body:**
+**Auth Required:** No
+
+**Request Body:**
 
 ```json
 {
@@ -176,16 +440,18 @@ official sources, cached in-memory for 10 minutes (same topic + profile).
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `topic_id` | string | yes | Topic id from `/api/topics` (e.g. `gst`) |
-| `age` | integer | yes | Used to match explanation depth |
-| `education_level` | string | yes | e.g. `School`, `College`, `Professional` |
-| `interests` | array of strings | no | Used to add helpful examples when supported by the material |
-| `style` | string | no | e.g. `simple`, `detailed`; omitted → automatic |
-| `language` | string | no | `English`, `Hindi`, `Hinglish`; default `English` |
+**Validation Rules:**
 
-**`200`** — `ExplainResponse`:
+| Field             | Type              | Required | Notes                                            |
+| ----------------- | ----------------- | -------- | ------------------------------------------------ |
+| `topic_id`        | string            | yes      | Topic id from `/api/topics` (e.g. `gst`)         |
+| `age`             | integer           | yes      | Used to match explanation depth                  |
+| `education_level` | string            | yes      | e.g. `School`, `College`, `Professional`          |
+| `interests`       | array of strings  | no       | Adds helpful examples where the material supports it |
+| `style`           | string            | no       | e.g. `simple`, `detailed`; omitted → automatic   |
+| `language`        | string            | no       | `English`, `Hindi`, `Hinglish`; default `English` |
+
+**Response (200):** `ExplainResponse`
 
 ```json
 {
@@ -201,25 +467,27 @@ official sources, cached in-memory for 10 minutes (same topic + profile).
 }
 ```
 
-**Error codes:**
+**Errors:**
 
 | Code | Meaning |
-|---|---|
+| ---- | ------- |
 | `404` | Topic not found (`{ "detail": "Topic not found." }`) |
 | `422` | Validation error (missing/invalid request fields) |
-| `502` | AI provider unavailable, rate-limited, or returned output that failed verification |
+| `502` | AI provider unavailable, rate-limited, or output failed verification |
 | `500` | Unexpected server error |
 
 ---
 
-## `POST /api/ai/chat`
+### POST `/api/ai/chat`
 
-Answer follow-up questions about a topic, grounded in the topic material and
-its official sources. The last 6 conversation turns are sent to the provider.
+Answer follow-up questions about a topic, grounded in the topic material and its
+official sources.
 
-**Status:** live (Phase 7).
+**Status:** live (Phase 7). The last 6 conversation turns are sent to the provider.
 
-**Request body:**
+**Auth Required:** No
+
+**Request Body:**
 
 ```json
 {
@@ -231,80 +499,38 @@ its official sources. The last 6 conversation turns are sent to the provider.
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `topic_id` | string | yes | Topic id from `/api/topics` |
-| `messages` | array of `{role, content}` | yes | `role` is `user` or `assistant`; oldest turns beyond the last 6 are trimmed server-side |
-| `language` | string | no | `English`, `Hindi`, `Hinglish`; default `English` |
+**Validation Rules:**
 
-**`200`:**
+| Field      | Type                         | Required | Notes                                                          |
+| ---------- | ---------------------------- | -------- | -------------------------------------------------------------- |
+| `topic_id` | string                       | yes      | Topic id from `/api/topics`                                    |
+| `messages` | array of `{role, content}`   | yes      | `role` is `user` or `assistant`; oldest turns beyond the last 6 are trimmed server-side |
+| `language` | string                       | no       | `English`, `Hindi`, `Hinglish`; default `English`               |
+
+**Response (200):**
 
 ```json
-{ "reply": "Goods and Services Tax (GST) is an indirect tax ..." }
+{
+  "reply": "Goods and Services Tax (GST) is an indirect tax ..."
+}
 ```
 
-**Error codes:**
+**Errors:**
 
 | Code | Meaning |
-|---|---|
+| ---- | ------- |
 | `404` | Topic not found |
 | `422` | Empty `messages` or validation error |
 | `502` | AI provider unavailable / rate-limited, or reply cited a URL outside the topic's official sources (rejected by verification) |
 | `500` | Unexpected server error |
 
-**Resilience:** transient provider errors (HTTP 429/5xx) are retried up to
+**Notes:** transient provider errors (HTTP 429/5xx) are retried up to
 `GEMINI_MAX_RETRIES` times (default 3) with backoff (5s → 20s → 40s). A live
 `429` (free-tier daily quota) returns a `502` with a rate-limit hint.
 
 ---
 
-## `POST /api/ai/chat-tracker`
-
-Answer follow-up questions about a **bill or protest tracker**, grounded in the
-tracker document and its official sources. Same contract as `/api/ai/chat`.
-The last 6 conversation turns are sent to the provider.
-
-**Status:** live (Phase 13).
-
-**Request body:**
-
-```json
-{
-  "tracker_id": "fcra-amendment",
-  "messages": [
-    { "role": "user", "content": "What does this bill change?" }
-  ],
-  "language": "English"
-}
-```
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `tracker_id` | string | yes | Tracker id from `/api/trackers` |
-| `messages` | array of `{role, content}` | yes | `role` is `user` or `assistant`; oldest turns beyond the last 6 are trimmed server-side |
-| `language` | string | no | `English`, `Hindi`, `Hinglish`; default `English` |
-
-**`200`:**
-
-```json
-{ "reply": "The Bill changes the Foreign Contribution (Regulation) Act ..." }
-```
-
-**Error codes:**
-
-| Code | Meaning |
-|---|---|
-| `404` | Tracker not found |
-| `422` | Empty `messages` or validation error |
-| `502` | AI provider unavailable / rate-limited, or reply cited a URL outside the tracker's official sources (rejected by verification) |
-| `500` | Unexpected server error |
-
-Returns the same rate-limit-friendly `502` messaging as the other AI
-endpoints when the free-tier daily quota is exhausted.
-
----
-
-## `POST /api/ai/explain-tracker`
+### POST `/api/ai/explain-tracker`
 
 Generate an age/education-appropriate, neutral explanation for a **bill or
 protest tracker** (`/api/trackers` item). Same contract and verification as
@@ -314,7 +540,9 @@ stage, viewpoints, official sources) instead of a topic.
 **Status:** live (Phase 12). Backed by Gemini, verified against the tracker's
 official sources, cached in-memory for 10 minutes (same tracker + profile).
 
-**Request body:**
+**Auth Required:** No
+
+**Request Body:**
 
 ```json
 {
@@ -327,21 +555,23 @@ official sources, cached in-memory for 10 minutes (same tracker + profile).
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `tracker_id` | string | yes | Tracker id from `/api/trackers` (e.g. `fcra-amendment`) |
-| `age` | integer | yes | Used to match explanation depth |
-| `education_level` | string | yes | e.g. `School`, `College`, `Professional` |
-| `interests` | array of strings | no | Used to add helpful examples when supported by the material |
-| `style` | string | no | e.g. `simple`, `detailed`; omitted → automatic |
-| `language` | string | no | `English`, `Hindi`, `Hinglish`; default `English` |
+**Validation Rules:**
 
-**`200`** — an `ExplainResponse` (same shape as `/api/ai/explain`).
+| Field             | Type              | Required | Notes                                          |
+| ----------------- | ----------------- | -------- | ---------------------------------------------- |
+| `tracker_id`      | string            | yes      | Tracker id from `/api/trackers` (e.g. `fcra-amendment`) |
+| `age`             | integer           | yes      | Used to match explanation depth                |
+| `education_level` | string            | yes      | e.g. `School`, `College`, `Professional`        |
+| `interests`       | array of strings  | no       | Adds helpful examples where the material supports it |
+| `style`           | string            | no       | e.g. `simple`, `detailed`; omitted → automatic |
+| `language`        | string            | no       | `English`, `Hindi`, `Hinglish`; default `English` |
 
-**Error codes:**
+**Response (200):** an `ExplainResponse` (same shape as `/api/ai/explain`).
+
+**Errors:**
 
 | Code | Meaning |
-|---|---|
+| ---- | ------- |
 | `404` | Tracker not found (`{ "detail": "Tracker not found." }`) |
 | `422` | Validation error (missing/invalid request fields) |
 | `502` | AI provider unavailable, rate-limited, or output failed verification against the tracker's sources |
@@ -349,17 +579,72 @@ official sources, cached in-memory for 10 minutes (same tracker + profile).
 
 ---
 
-## Saved history (Dashboard)
+### POST `/api/ai/chat-tracker`
 
-**Status:** live (Phase 8). Per-user history stored inside `users_collection`
-under `savedHistory` (max 100 items, newest first). All routes require
-`Authorization: Bearer <token>` (401 if missing/expired).
+Answer follow-up questions about a **bill or protest tracker**, grounded in the
+tracker document and its official sources. Same contract as `/api/ai/chat`.
 
-### `GET /api/history`
+**Status:** live (Phase 13). The last 6 conversation turns are sent to the provider.
+
+**Auth Required:** No
+
+**Request Body:**
+
+```json
+{
+  "tracker_id": "fcra-amendment",
+  "messages": [
+    { "role": "user", "content": "What does this bill change?" }
+  ],
+  "language": "English"
+}
+```
+
+**Validation Rules:**
+
+| Field        | Type                         | Required | Notes                                                          |
+| ------------ | ---------------------------- | -------- | -------------------------------------------------------------- |
+| `tracker_id` | string                       | yes      | Tracker id from `/api/trackers`                                |
+| `messages`   | array of `{role, content}`   | yes      | `role` is `user` or `assistant`; oldest turns beyond the last 6 are trimmed server-side |
+| `language`   | string                       | no       | `English`, `Hindi`, `Hinglish`; default `English`               |
+
+**Response (200):**
+
+```json
+{
+  "reply": "The Bill changes the Foreign Contribution (Regulation) Act ..."
+}
+```
+
+**Errors:**
+
+| Code | Meaning |
+| ---- | ------- |
+| `404` | Tracker not found |
+| `422` | Empty `messages` or validation error |
+| `502` | AI provider unavailable / rate-limited, or reply cited a URL outside the tracker's official sources (rejected by verification) |
+| `500` | Unexpected server error |
+
+**Notes:** returns the same rate-limit-friendly `502` messaging as the other AI
+endpoints when the free-tier daily quota is exhausted.
+
+---
+
+## History (Dashboard)
+
+Per-user history stored inside `users_collection` under `savedHistory` (max 100
+items, newest first). All routes require `Authorization: Bearer <token>` (401 if
+missing/expired).
+
+**Status:** live (Phase 8).
+
+### GET `/api/history`
 
 List the signed-in user's saved items.
 
-**`200`:**
+**Auth Required:** Yes
+
+**Response (200):**
 
 ```json
 {
@@ -377,12 +662,18 @@ List the signed-in user's saved items.
 }
 ```
 
-`content` is an `ExplainResponse` (type `explain`) or
+**Notes:** `content` is an `ExplainResponse` (type `explain`) or
 `{ "messages": [...], "reply": "..." }` (type `chat`).
 
-### `POST /api/history`
+---
 
-Save an item. **Request body:**
+### POST `/api/history`
+
+Save an item to the dashboard.
+
+**Auth Required:** Yes
+
+**Request Body:**
 
 ```json
 {
@@ -394,35 +685,82 @@ Save an item. **Request body:**
 }
 ```
 
-- `type`: `explain` | `chat` (required)
-- `content`: the saved payload (ExplainResponse shape, or `{messages, reply}`)
+**Validation Rules:**
 
-**`200`:** `{ "message": "Saved to your dashboard.", "item": {...} }`
+- `type`: Required, `"explain"` or `"chat"`
+- `topicId`: Required, string
+- `topicTitle`: Required, string
+- `language`: Optional, default `"English"`
+- `content`: Required, the saved payload (an `ExplainResponse` shape, or `{ "messages": [...], "reply": "..." }`)
 
-### `DELETE /api/history/{item_id}`
+**Response (200):**
 
-Remove one saved item. **`200`** `{ "message": "Removed from your dashboard." }`
-· **`404`** if the item id isn't present.
-
-### `DELETE /api/history`
- 
-Clear the entire saved history. **`200`**
-`{ "message": "Your dashboard has been cleared." }`
+```json
+{
+  "message": "Saved to your dashboard.",
+  "item": { ... }
+}
+```
 
 ---
 
-## Saved topics (bookmarks)
+### DELETE `/api/history/{item_id}`
 
-**Status:** live (Phase 10). Per-user saved topics stored inside
-`users_collection` under `savedTopics` (max 100, newest first, deduplicated by
-`topicId`). All routes require `Authorization: Bearer <token>` (401 if
-missing/expired).
+Remove one saved item.
 
-### `GET /api/history/topics`
+**Auth Required:** Yes
+
+**Path Parameters:**
+
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| `item_id` | string | Saved item ID |
+
+**Response (200):**
+
+```json
+{
+  "message": "Removed from your dashboard."
+}
+```
+
+**Errors:**
+
+- `404` — `{ "detail": "Saved item not found." }`
+
+---
+
+### DELETE `/api/history`
+
+Clear the entire saved history.
+
+**Auth Required:** Yes
+
+**Response (200):**
+
+```json
+{
+  "message": "Your dashboard has been cleared."
+}
+```
+
+---
+
+## Saved Topics (bookmarks)
+
+Per-user saved topics stored inside `users_collection` under `savedTopics`
+(max 100, newest first, deduplicated by `topicId`). All routes require
+`Authorization: Bearer <token>` (401 if missing/expired).
+
+**Status:** live (Phase 10).
+
+### GET `/api/history/topics`
 
 List the signed-in user's saved topics.
 
-**`200`:**
+**Auth Required:** Yes
+
+**Response (200):**
 
 ```json
 {
@@ -439,9 +777,15 @@ List the signed-in user's saved topics.
 }
 ```
 
-### `POST /api/history/topics`
+---
 
-Save a topic. **Request body:**
+### POST `/api/history/topics`
+
+Save a topic.
+
+**Auth Required:** Yes
+
+**Request Body:**
 
 ```json
 {
@@ -453,30 +797,65 @@ Save a topic. **Request body:**
 }
 ```
 
-`topicId` is required; the other fields are informational (may be empty).
+**Validation Rules:**
 
-**`200`:** `{ "message": "Topic saved." | "Topic already saved.", "item": {...} }`
+- `topicId`: Required; deduplicated (saving an existing one is idempotent)
+- `topicTitle`, `category`, `readTime`, `summary`: Optional, informational (may be empty)
 
-### `DELETE /api/history/topics/{topic_id}`
+**Response (200):**
 
-Remove a saved topic. **`200`** `{ "message": "Topic removed from your saved list." }`
-· **`404`** if the topic id isn't saved.
+```json
+{
+  "message": "Topic saved. | Topic already saved.",
+  "item": { ... }
+}
+```
 
 ---
 
-## `GET /api/trackers`
+### DELETE `/api/history/topics/{topic_id}`
+
+Remove a saved topic.
+
+**Auth Required:** Yes
+
+**Path Parameters:**
+
+| Parameter  | Type   | Description      |
+| ---------- | ------ | ---------------- |
+| `topic_id` | string | Saved topic id   |
+
+**Response (200):**
+
+```json
+{
+  "message": "Topic removed from your saved list."
+}
+```
+
+**Errors:**
+
+- `404` — `{ "detail": "Saved topic not found." }`
+
+---
+
+## Trackers
+
+### GET `/api/trackers`
 
 Civic trackers — bills before Parliament and active/concluded protests.
 Read-only; content is curated and seeded (`python -m app.seed_trackers`),
 neutral, with both sides noted under `viewpoints` and URL-verified sources.
 
-**Query params:**
+**Auth Required:** No
 
-| Param | Type | Notes |
-|---|---|---|
-| `type` | string | optional; `bill` or `protest`. Omitted → all items. Any other value → all items. |
+**Query Parameters:**
 
-**`200`** — items sorted by `lastUpdated` descending:
+| Parameter | Type   | Notes                                                      |
+| --------- | ------ | ---------------------------------------------------------- |
+| `type`    | string | optional; `bill` or `protest`. Omitted → all items. Any other value → all items. |
+
+**Response (200):** items sorted by `lastUpdated` descending
 
 ```json
 {
@@ -502,9 +881,73 @@ neutral, with both sides noted under `viewpoints` and URL-verified sources.
 }
 ```
 
-## `GET /api/trackers/{tracker_id}`
+---
+
+### GET `/api/trackers/{tracker_id}`
 
 Fetch a single tracker by its `id` slug (e.g. `fcra-amendment`).
 
-**`200`** — a single tracker document (same shape as one item above).
-**`404`** — `{ "detail": "Tracker not found." }`
+**Auth Required:** No
+
+**Path Parameters:**
+
+| Parameter    | Type   | Description      |
+| ------------ | ------ | ---------------- |
+| `tracker_id` | string | Tracker's id slug |
+
+**Response (200):** a single tracker document (same shape as one item above).
+
+**Errors:**
+
+- `404` — `{ "detail": "Tracker not found." }`
+
+---
+
+# Error Examples
+
+### Validation Error (422)
+
+```json
+{
+  "detail": [
+    {
+      "type": "missing",
+      "loc": ["body", "email"],
+      "msg": "Field required",
+      "input": { "fullName": "Example User" }
+    }
+  ]
+}
+```
+
+### Unauthorized (401)
+
+```json
+{
+  "detail": "Invalid email or password."
+}
+```
+
+### Not Found (404)
+
+```json
+{
+  "detail": "Topic not found."
+}
+```
+
+### Bad Request (400)
+
+```json
+{
+  "detail": "An account with this email already exists."
+}
+```
+
+### AI Unavailable (502)
+
+```json
+{
+  "detail": "The AI service is temporarily unavailable while explaining this topic. Please try again later."
+}
+```
