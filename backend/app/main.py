@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from app.api.routes import topics, ai, auth, history, trackers
 
@@ -27,3 +28,11 @@ app.include_router(ai.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(history.router, prefix="/api")
 app.include_router(trackers.router, prefix="/api")
+
+
+@app.get("/api/config")
+def public_config():
+    """Public, non-sensitive frontend configuration."""
+    return {
+        "googleClientId": os.getenv("GOOGLE_CLIENT_ID", "") or None,
+    }

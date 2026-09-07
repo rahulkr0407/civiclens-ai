@@ -75,6 +75,41 @@ def refresh_token_expiry() -> datetime:
     return _utc_now() + timedelta(days=REFRESH_TOKEN_DAYS)
 
 
+# =========================
+# Password-reset tokens
+# =========================
+
+RESET_TOKEN_HOURS = int(os.getenv("RESET_TOKEN_HOURS", "1"))
+
+
+def generate_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def reset_token_expiry() -> datetime:
+    return _utc_now() + timedelta(hours=RESET_TOKEN_HOURS)
+
+
+def is_reset_token_valid(user: dict, token: str) -> bool:
+    stored = user.get("resetTokenHash")
+    expires_at = user.get("resetTokenExpiresAt")
+
+    if not stored or not token:
+        return False
+
+    if not secrets.compare_digest(hash_reset_token(token), stored):
+        return False
+
+    if not expires_at or _as_utc(expires_at) < _utc_now():
+        return False
+
+    return True
+
+
 def is_refresh_token_valid(user: dict, token: str) -> bool:
     stored = user.get("refreshTokenHash")
     expires_at = user.get("refreshTokenExpiresAt")
