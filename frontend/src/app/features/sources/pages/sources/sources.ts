@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { SearchService } from '../../../../core/services/search';
 import { Topic } from '../../../../core/models/topic';
+import { LoadingSpinner } from '../../../../shared/components/loading-spinner/loading-spinner';
+import { Chip } from '../../../../shared/components/chip/chip';
+import { SectionTitle } from '../../../../shared/components/section-title/section-title';
 
 interface SourceGroup {
   topic: Topic;
@@ -10,6 +13,7 @@ interface SourceGroup {
 @Component({
   selector: 'app-sources',
   standalone: true,
+  imports: [LoadingSpinner, Chip, SectionTitle],
   templateUrl: './sources.html',
 })
 export class SourcesComponent implements OnInit {

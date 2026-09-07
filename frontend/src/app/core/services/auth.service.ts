@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, tap, throwError } from 'rxjs';
 import { API_BASE_URL } from './api-config';
 import {
   AuthUser,
   LoginResponse,
   RefreshResponse,
   SignupRequest,
-} from '../../shared/models/user.model';
+} from '../models/user.model';
 
 const USER_KEY = 'civiclens_user';
 const LOGGED_IN_KEY = 'civiclens_logged_in';
@@ -19,6 +19,10 @@ const REFRESH_TOKEN_KEY = 'civiclens_refresh_token';
 })
 export class AuthService {
 
+  private authState = new BehaviorSubject<boolean>(this.isLoggedIn());
+
+  authState$ = this.authState.asObservable();
+
   private apiUrl = `${API_BASE_URL}/auth`;
 
   constructor(private http: HttpClient) {}
@@ -26,6 +30,27 @@ export class AuthService {
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${this.apiUrl}/login`, { email, password });
+  }
+
+  googleLogin(credential: string): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${this.apiUrl}/google`, { credential });
+  }
+
+  forgotPassword(email: string): Observable<{ message: string; dev_reset_link?: string }> {
+    return this.http
+      .post<{ message: string; dev_reset_link?: string }>(
+        `${this.apiUrl}/forgot-password`,
+        { email }
+      );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(
+        `${this.apiUrl}/reset-password`,
+        { token, new_password: newPassword }
+      );
   }
 
   signup(payload: SignupRequest): Observable<{ message: string }> {
@@ -52,40 +77,65 @@ export class AuthService {
       })
       .pipe(
         tap((response) => {
-          this.storeTokens(response.access_token, response.refresh_token);
+          this.storeTokens(
+            response.access_token,
+            response.refresh_token,
+            this.usesSessionStorage()
+          );
         })
       );
   }
 
-  persistSession(user: AuthUser, accessToken: string, refreshToken: string): void {
-    this.storeTokens(accessToken, refreshToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    localStorage.setItem(LOGGED_IN_KEY, 'true');
+  /** True when the session lives in sessionStorage (remember-me off). */
+  private usesSessionStorage(): boolean {
+    return sessionStorage.getItem(REFRESH_TOKEN_KEY) !== null;
   }
 
-  storeTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem(TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  persistSession(user: AuthUser, accessToken: string, refreshToken: string, rememberMe = true): void {
+    this.storeTokens(accessToken, refreshToken, rememberMe);
+    this.setUser(user, rememberMe);
+    this.setLoggedIn(rememberMe);
+    this.authState.next(true);
+  }
+
+  storeTokens(accessToken: string, refreshToken: string, rememberMe = true): void {
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem(TOKEN_KEY, accessToken);
+    storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
+
+  private setUser(user: AuthUser, rememberMe = true): void {
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem(USER_KEY, JSON.stringify(user));
+  }
+
+  private setLoggedIn(rememberMe = true): void {
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem(LOGGED_IN_KEY, 'true');
   }
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return this.getFromStorage(TOKEN_KEY);
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
+    return this.getFromStorage(REFRESH_TOKEN_KEY);
   }
 
   getUser(): AuthUser | null {
-    const saved = localStorage.getItem(USER_KEY);
+    const saved = this.getFromStorage(USER_KEY);
     return saved ? (JSON.parse(saved) as AuthUser) : null;
   }
 
   isLoggedIn(): boolean {
     return (
-      localStorage.getItem(LOGGED_IN_KEY) === 'true' &&
-      localStorage.getItem(TOKEN_KEY) !== null
+      (this.getFromStorage(LOGGED_IN_KEY) ?? null) === 'true' &&
+      this.getFromStorage(TOKEN_KEY) !== null
     );
+  }
+
+  private getFromStorage(key: string): string | null {
+    return localStorage.getItem(key) ?? sessionStorage.getItem(key);
   }
 
   logout(): void {
@@ -101,9 +151,12 @@ export class AuthService {
   }
 
   clearSession(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(LOGGED_IN_KEY);
+    [localStorage, sessionStorage].forEach((storage) => {
+      storage.removeItem(TOKEN_KEY);
+      storage.removeItem(REFRESH_TOKEN_KEY);
+      storage.removeItem(USER_KEY);
+      storage.removeItem(LOGGED_IN_KEY);
+    });
+    this.authState.next(false);
   }
 }

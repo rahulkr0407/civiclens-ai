@@ -1,18 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { HistoryService } from '../../../../core/services/history.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import {
-  HistoryService,
   SavedChatContent,
   SavedHistoryItem,
   SavedTopic,
-} from '../../../../core/services/history.service';
-import { ExplainResponse } from '../../../../core/services/ai';
+} from '../../../../core/models/history.model';
+import { ExplainResponse } from '../../../../core/models/ai.model';
+import { LoadingSpinner } from '../../../../shared/components/loading-spinner/loading-spinner';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, LoadingSpinner],
   templateUrl: './dashboard.html',
 })
 export class DashboardComponent implements OnInit {
@@ -28,7 +30,8 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private auth: AuthService,
-    private historyService: HistoryService
+    private historyService: HistoryService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -60,9 +63,10 @@ export class DashboardComponent implements OnInit {
         this.savedTopics = this.savedTopics.filter(
           (saved) => saved.topicId !== topic.topicId
         );
+        this.toast.success('Topic removed from your saved list.');
       },
       error: (error) => {
-        this.errorMessage = this.mapError(error);
+        this.toast.error(this.mapActionError(error));
       },
     });
   }
@@ -105,9 +109,10 @@ export class DashboardComponent implements OnInit {
         this.items = this.items.filter(
           (saved) => saved.id !== item.id
         );
+        this.toast.success('Item deleted from your history.');
       },
       error: (error) => {
-        this.errorMessage = this.mapError(error);
+        this.toast.error(this.mapActionError(error));
       },
     });
   }
@@ -116,9 +121,10 @@ export class DashboardComponent implements OnInit {
     this.historyService.clear().subscribe({
       next: () => {
         this.items = [];
+        this.toast.success('All history cleared.');
       },
       error: (error) => {
-        this.errorMessage = this.mapError(error);
+        this.toast.error(this.mapActionError(error));
       },
     });
   }
@@ -141,6 +147,16 @@ export class DashboardComponent implements OnInit {
     return (
       error.error?.detail ||
       'Something went wrong loading your dashboard. Please try again.'
+    );
+  }
+
+  private mapActionError(error: any): string {
+    if (error.status === 401) {
+      return 'Your session has expired. Please log in again.';
+    }
+    return (
+      error.error?.detail ||
+      'Something went wrong. Please try again.'
     );
   }
 }

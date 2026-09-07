@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TrackersService, Tracker, TrackerType } from '../../../../core/services/trackers.service';
+import { TrackersService } from '../../../../core/services/trackers.service';
+import { Tracker, TrackerType } from '../../../../core/models/tracker.model';
+import { Chip } from '../../../../shared/components/chip/chip';
 
 @Component({
   selector: 'app-trackers',
   standalone: true,
-  imports: [NgClass, RouterLink],
+  imports: [NgClass, RouterLink, Chip],
   templateUrl: './trackers.html',
 })
 export class TrackersComponent implements OnInit {

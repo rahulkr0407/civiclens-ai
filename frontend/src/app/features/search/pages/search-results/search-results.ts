@@ -2,10 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchService } from '../../../../core/services/search';
 import { Topic } from '../../../../core/models/topic';
+import { Chip } from '../../../../shared/components/chip/chip';
 
 @Component({
   selector: 'app-search-results',
   standalone: true,
+  imports: [Chip],
   templateUrl: './search-results.html',
 })
 export class SearchResultsComponent implements OnInit {

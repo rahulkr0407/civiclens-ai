@@ -81,17 +81,6 @@
 
         <!-- FORM -->
         <form (ngSubmit)="signup()">
-          @if (errorMessage) {
-            <div class="form-message error-message">
-              {{ errorMessage }}
-            </div>
-          }
-
-          @if (successMessage) {
-            <div class="form-message success-message">
-              {{ successMessage }}
-            </div>
-          }
 
           <!-- Full Name -->
           <div class="field">
@@ -293,9 +282,9 @@
 
             <span>
               I agree to the
-              <a href="#">Terms of Service</a>
+              <a routerLink="/terms">Terms of Service</a>
               and
-              <a href="#">Privacy Policy</a>.
+              <a routerLink="/privacy">Privacy Policy</a>.
             </span>
           </label>
 
@@ -306,18 +295,23 @@
           </button>
         </form>
 
-        <!-- Divider -->
-        <div class="divider">
-          <span></span>
-          <p>or continue with</p>
-          <span></span>
-        </div>
+        @if (googleAvailable) {
+          <!-- Divider -->
+          <div class="divider">
+            <span></span>
+            <p>or continue with</p>
+            <span></span>
+          </div>
 
-        <!-- Google -->
-        <button type="button" class="google-button">
-          <span class="google-icon">G</span>
-          <span>Continue with Google</span>
-        </button>
+          <!-- Google -->
+          <div class="google-wrapper">
+            <div id="google-signup-button"></div>
+
+            @if (googleLoading) {
+              <p class="google-status">Signing you up…</p>
+            }
+          </div>
+        }
 
         <!-- Login -->
         <p class="login-text">

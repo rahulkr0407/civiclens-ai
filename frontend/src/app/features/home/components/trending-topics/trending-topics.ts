@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SearchService } from '../../../../core/services/search';
 import { Topic } from '../../../../core/models/topic';
+import { Chip } from '../../../../shared/components/chip/chip';
 
 @Component({
   selector: 'app-trending-topics',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, Chip],
   templateUrl: './trending-topics.html',
   styleUrl: './trending-topics.scss',
 })

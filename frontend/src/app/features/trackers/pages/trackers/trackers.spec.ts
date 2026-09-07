@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { provideRouter } from '@angular/router';
-import { TrackersService, Tracker } from '../../../../core/services/trackers.service';
+import { TrackersService } from '../../../../core/services/trackers.service';
+import { Tracker } from '../../../../core/models/tracker.model';
 
 import { TrackersComponent } from './trackers';
 

@@ -49,19 +49,19 @@
     <div
       class="mt-9 flex w-full flex-col justify-center gap-3 sm:mt-10 sm:w-auto sm:flex-row sm:gap-4"
     >
-      <button
-        type="button"
-        class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+      <a
+        routerLink="/topics"
+        class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3.5 text-center text-base font-semibold text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
       >
         🚀 Start Learning
-      </button>
+      </a>
 
-      <button
-        type="button"
-        class="w-full rounded-xl border border-slate-300 bg-white px-7 py-3.5 text-base font-semibold text-slate-700 transition duration-300 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+      <a
+        routerLink="/topics"
+        class="w-full rounded-xl border border-slate-300 bg-white px-7 py-3.5 text-center text-base font-semibold text-slate-700 transition duration-300 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
       >
         📚 Explore Topics
-      </button>
+      </a>
     </div>
 
     <!-- Stats -->
@@ -71,7 +71,7 @@
 
       <div class="px-2 sm:px-6">
         <h3 class="text-2xl font-bold text-blue-600 sm:text-3xl">
-          100+
+          {{ topicsCount }}+
         </h3>
 
         <p class="mt-1 text-xs text-slate-600 sm:text-sm">

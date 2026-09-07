@@ -2,15 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TrackersService, Tracker } from '../../../../core/services/trackers.service';
+import { TrackersService } from '../../../../core/services/trackers.service';
+import { Tracker } from '../../../../core/models/tracker.model';
+import { AiService } from '../../../../core/services/ai';
 import {
-  AiService,
   ChatMessage,
   ExplainResponse,
   ExplainTrackerRequest,
-} from '../../../../core/services/ai';
+} from '../../../../core/models/ai.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { HistoryService } from '../../../../core/services/history.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import { LoadingSpinner } from '../../../../shared/components/loading-spinner/loading-spinner';
+import { Chip } from '../../../../shared/components/chip/chip';
 
 interface LearnerProfile {
   age: number;
@@ -23,7 +27,7 @@ const LANGUAGE_OPTIONS = ['English', 'Hindi', 'Hinglish'] as const;
 @Component({
   selector: 'app-tracker-details',
   standalone: true,
-  imports: [RouterLink, NgClass, FormsModule],
+  imports: [RouterLink, NgClass, FormsModule, LoadingSpinner, Chip],
   templateUrl: './tracker-details.html',
 })
 export class TrackerDetailsComponent implements OnInit {
@@ -34,19 +38,16 @@ export class TrackerDetailsComponent implements OnInit {
   tracker: Tracker | null = null;
 
   aiLoading = false;
-  aiError = '';
   aiResult: ExplainResponse | null = null;
 
   language: (typeof LANGUAGE_OPTIONS)[number] = 'English';
   languageOptions = LANGUAGE_OPTIONS;
 
   savedExplain = false;
-  saveMessage = '';
 
   chatMessages: ChatMessage[] = [];
   chatInput = '';
   chatLoading = false;
-  chatError = '';
   savedChat = false;
 
   constructor(
@@ -55,6 +56,7 @@ export class TrackerDetailsComponent implements OnInit {
     private aiService: AiService,
     private auth: AuthService,
     private historyService: HistoryService,
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -109,7 +111,6 @@ export class TrackerDetailsComponent implements OnInit {
     }
 
     this.aiLoading = true;
-    this.aiError = '';
     this.aiResult = null;
     this.savedExplain = false;
 
@@ -130,7 +131,7 @@ export class TrackerDetailsComponent implements OnInit {
       },
       error: (error) => {
         this.aiLoading = false;
-        this.aiError = this.mapAiError(error);
+        this.toast.error(this.mapAiError(error));
       },
     });
   }
@@ -144,8 +145,6 @@ export class TrackerDetailsComponent implements OnInit {
       return;
     }
 
-    this.saveMessage = '';
-
     this.historyService
       .save({
         type: 'explain',
@@ -157,10 +156,10 @@ export class TrackerDetailsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.savedExplain = true;
-          this.saveMessage = 'Explanation saved to your dashboard.';
+          this.toast.success('Explanation saved to your dashboard.');
         },
         error: (error) => {
-          this.saveMessage = this.mapSaveError(error);
+          this.toast.error(this.mapSaveError(error));
         },
       });
   }
@@ -176,7 +175,6 @@ export class TrackerDetailsComponent implements OnInit {
     this.chatMessages = [...this.chatMessages, userMessage];
     this.chatInput = '';
     this.chatLoading = true;
-    this.chatError = '';
 
     this.aiService
       .chatTracker({
@@ -194,14 +192,13 @@ export class TrackerDetailsComponent implements OnInit {
         },
         error: (error) => {
           this.chatLoading = false;
-          this.chatError = this.mapAiError(error);
+          this.toast.error(this.mapAiError(error));
         },
       });
   }
 
   clearChat(): void {
     this.chatMessages = [];
-    this.chatError = '';
     this.savedChat = false;
   }
 
@@ -220,8 +217,6 @@ export class TrackerDetailsComponent implements OnInit {
       return;
     }
 
-    this.saveMessage = '';
-
     this.historyService
       .save({
         type: 'chat',
@@ -236,10 +231,10 @@ export class TrackerDetailsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.savedChat = true;
-          this.saveMessage = 'Conversation saved to your dashboard.';
+          this.toast.success('Conversation saved to your dashboard.');
         },
         error: (error) => {
-          this.saveMessage = this.mapSaveError(error);
+          this.toast.error(this.mapSaveError(error));
         },
       });
   }
@@ -274,7 +269,9 @@ export class TrackerDetailsComponent implements OnInit {
     const loggedIn = this.auth.isLoggedIn();
 
     if (!loggedIn) {
-      this.saveMessage = 'Please log in to save items to your dashboard.';
+      this.toast.warning(
+        'Please log in to save items to your dashboard.'
+      );
     }
 
     return loggedIn;

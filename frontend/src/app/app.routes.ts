@@ -7,6 +7,10 @@ import { TopicsComponent } from './features/topics/pages/topics/topics';
 
 import { LoginComponent } from './features/auth/pages/login/login';
 import { SignupComponent } from './features/auth/pages/signup/signup';
+import { ForgotPasswordComponent } from './features/auth/pages/forgot-password/forgot-password';
+import { ResetPasswordComponent } from './features/auth/pages/reset-password/reset-password';
+import { TermsComponent } from './features/auth/pages/terms/terms';
+import { PrivacyComponent } from './features/auth/pages/privacy/privacy';
 import { SourcesComponent } from './features/sources/pages/sources/sources';
 import { AboutComponent } from './features/about/pages/about/about';
 import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard';
@@ -87,6 +91,26 @@ export const routes: Routes = [
   {
     path: 'signup',
     component: SignupComponent,
+  },
+
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordComponent,
+  },
+
+  {
+    path: 'reset-password',
+    component: ResetPasswordComponent,
+  },
+
+  {
+    path: 'terms',
+    component: TermsComponent,
+  },
+
+  {
+    path: 'privacy',
+    component: PrivacyComponent,
   },
 
   // Unknown URL → Login

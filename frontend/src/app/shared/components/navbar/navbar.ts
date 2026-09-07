@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
-import { AuthUser } from '../../models/user.model';
+import { AuthUser } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-navbar',
@@ -9,12 +10,14 @@ import { AuthUser } from '../../models/user.model';
   imports: [RouterLink],
   templateUrl: './navbar.html',
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
 
   mobileMenuOpen = false;
 
   isLoggedIn = false;
   user: AuthUser | null = null;
+
+  private authSubscription: Subscription | null = null;
 
   constructor(
     private auth: AuthService,
@@ -23,6 +26,13 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUser();
+    this.authSubscription = this.auth.authState$.subscribe(() => {
+      this.loadUser();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.authSubscription?.unsubscribe();
   }
 
   loadUser(): void {

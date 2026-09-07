@@ -4,11 +4,13 @@ import { Router } from '@angular/router';
 import { Topic } from '../../../core/models/topic';
 import { AuthService } from '../../../core/services/auth.service';
 import { HistoryService } from '../../../core/services/history.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { Chip } from '../chip/chip';
 
 @Component({
   selector: 'app-topic-card',
   standalone: true,
-  imports: [NgClass],
+  imports: [NgClass, Chip],
   templateUrl: './topic-card.html',
   styleUrl: './topic-card.scss',
 })
@@ -22,7 +24,8 @@ export class TopicCard implements OnInit {
   constructor(
     private router: Router,
     private auth: AuthService,
-    private historyService: HistoryService
+    private historyService: HistoryService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -61,9 +64,11 @@ export class TopicCard implements OnInit {
         next: () => {
           this.saved = false;
           this.saveLoading = false;
+          this.toast.success('Topic removed from your saved list.');
         },
-        error: () => {
+        error: (error) => {
           this.saveLoading = false;
+          this.toast.error(this.mapSaveError(error));
         },
       });
     } else {
@@ -79,11 +84,20 @@ export class TopicCard implements OnInit {
           next: () => {
             this.saved = true;
             this.saveLoading = false;
+            this.toast.success('Topic saved for later.');
           },
-          error: () => {
+          error: (error) => {
             this.saveLoading = false;
+            this.toast.error(this.mapSaveError(error));
           },
         });
     }
+  }
+
+  private mapSaveError(error: any): string {
+    if (error.status === 401) {
+      return 'Your session has expired. Please log in again.';
+    }
+    return error.error?.detail || 'Could not save right now. Please try again.';
   }
 }

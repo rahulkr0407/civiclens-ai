@@ -1,1 +1,26 @@
-<p>loading-spinner works!</p>
+@switch (tone) {
+  @case ('muted') {
+    <div
+      class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-400 border-t-transparent"
+    ></div>
+  }
+  @default {
+    @switch (size) {
+      @case ('sm') {
+        <div
+          class="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+        ></div>
+      }
+      @case ('xs') {
+        <div
+          class="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+        ></div>
+      }
+      @default {
+        <div
+          class="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"
+        ></div>
+      }
+    }
+  }
+}

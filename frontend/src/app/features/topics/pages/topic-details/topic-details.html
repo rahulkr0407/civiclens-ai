@@ -7,9 +7,7 @@
 
       <div class="flex min-h-64 items-center justify-center">
 
-        <div
-          class="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"
-        ></div>
+        <app-loading-spinner />
 
       </div>
 
@@ -72,11 +70,7 @@
           <!-- Category -->
           <div class="flex flex-wrap items-center gap-3">
 
-            <span
-              class="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-blue-600"
-            >
-              {{ topic.category }}
-            </span>
+            <app-chip [label]="topic.category" [uppercase]="true" />
 
             <span class="text-sm text-slate-500">
               ⏱ {{ topic.readTime }} read
@@ -343,22 +337,12 @@
                   class="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-blue-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 sm:w-auto"
                 >
                   @if (aiLoading) {
-                    <span
-                      class="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
-                    ></span>
+                    <app-loading-spinner size="sm" />
                     <span>Explaining…</span>
                   } @else {
                     <span>✨ Explain with AI</span>
                   }
                 </button>
-
-                @if (aiError) {
-
-                  <p class="mt-3 max-w-xs text-sm font-medium leading-6 text-red-100">
-                    {{ aiError }}
-                  </p>
-
-                }
 
               </div>
 
@@ -405,7 +389,7 @@
                     class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     @if (aiLoading) {
-                      <span class="mr-1 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-400 border-t-transparent align-middle"></span>
+                      <span class="mr-1 inline-block align-middle"><app-loading-spinner tone="muted" /></span>
                     }
                     Regenerate
                   </button>
@@ -552,23 +536,6 @@
 
           }
 
-          <!-- Save status -->
-          @if (saveMessage) {
-
-            <p
-              class="mt-4 rounded-xl px-4 py-3 text-sm font-medium"
-              [class.bg-green-50]="!saveMessage.startsWith('Please') && !saveMessage.includes('Could not') && !saveMessage.includes('expired')"
-              [class.text-green-700]="!saveMessage.startsWith('Please') && !saveMessage.includes('Could not') && !saveMessage.includes('expired')"
-              [class.bg-amber-50]="saveMessage.startsWith('Please')"
-              [class.text-amber-700]="saveMessage.startsWith('Please')"
-              [class.bg-red-50]="saveMessage.includes('Could not') || saveMessage.includes('expired')"
-              [class.text-red-600]="saveMessage.includes('Could not') || saveMessage.includes('expired')"
-            >
-              {{ saveMessage }}
-            </p>
-
-          }
-
 
           <!-- AI Follow-up Chat -->
           <section
@@ -616,9 +583,7 @@
                     class="flex items-center gap-2 rounded-2xl bg-slate-100 px-5 py-3.5"
                   >
 
-                    <span
-                      class="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
-                    ></span>
+                    <app-loading-spinner size="xs" />
 
                     <span class="text-sm font-medium text-slate-500">
                       CivicLens AI is thinking…
@@ -630,14 +595,6 @@
 
               }
             </div>
-
-            @if (chatError) {
-
-              <p class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-                {{ chatError }}
-              </p>
-
-            }
 
             <div class="mt-5 flex gap-3">
 

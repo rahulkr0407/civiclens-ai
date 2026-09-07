@@ -2,11 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { SearchService } from '../../../../core/services/search';
 import { Topic } from '../../../../core/models/topic';
 import { TopicCard } from '../../../../shared/components/topic-card/topic-card';
+import { LoadingSpinner } from '../../../../shared/components/loading-spinner/loading-spinner';
+import { SectionTitle } from '../../../../shared/components/section-title/section-title';
 
 @Component({
   selector: 'app-topics',
   standalone: true,
-  imports: [TopicCard],
+  imports: [TopicCard, LoadingSpinner, SectionTitle],
   templateUrl: './topics.html',
   styleUrl: './topics.scss',
 })

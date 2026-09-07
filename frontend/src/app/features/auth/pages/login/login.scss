@@ -877,6 +877,20 @@
   font-weight: 800;
 }
 
+.google-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.google-status {
+  color: #64748b;
+  font-size: 0.85rem;
+
+  margin: 0;
+}
+
 
 /* =========================================================
    SIGNUP LINK

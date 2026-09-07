@@ -1,10 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { ActivatedRoute, provideRouter } from '@angular/router';
-import { TrackersService, Tracker } from '../../../../core/services/trackers.service';
+import { TrackersService } from '../../../../core/services/trackers.service';
+import { Tracker } from '../../../../core/models/tracker.model';
 import { AiService } from '../../../../core/services/ai';
 import { AuthService } from '../../../../core/services/auth.service';
 import { HistoryService } from '../../../../core/services/history.service';
+import { ToastService } from '../../../../core/services/toast.service';
 
 import { TrackerDetailsComponent } from './tracker-details';
 
@@ -65,6 +67,15 @@ describe('TrackerDetailsComponent', () => {
           provide: HistoryService,
           useValue: { save: () => of({}) },
         },
+        {
+          provide: ToastService,
+          useValue: {
+            success: jasmine.createSpy('success'),
+            error: jasmine.createSpy('error'),
+            warning: jasmine.createSpy('warning'),
+            info: jasmine.createSpy('info'),
+          },
+        },
       ],
     })
     .compileComponents();
@@ -97,16 +108,18 @@ describe('TrackerDetailsComponent', () => {
     component.explainWithAI();
     expect(component.aiResult?.topicTitle).toContain('Foreign Contribution');
     expect(component.aiLoading).toBeFalse();
-    expect(component.aiError).toBe('');
   });
 
-  it('should map a 502 AI error to a friendly message', () => {
+  it('should show a toast on a 502 AI error', () => {
     fixture.detectChanges();
+    const toast = TestBed.inject(ToastService) as unknown as {
+      error: jasmine.Spy;
+    };
     spyOn(aiService, 'explainTracker').and.returnValue(
       throwError(() => ({ status: 502, error: { detail: 'Quota exceeded' } }))
     );
     component.explainWithAI();
-    expect(component.aiError).toBe('Quota exceeded');
+    expect(toast.error).toHaveBeenCalledWith('Quota exceeded');
   });
 
   it('should send a chat message and store the assistant reply', () => {

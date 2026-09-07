@@ -2,7 +2,9 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
-import { SignupRequest } from '../../../../shared/models/user.model';
+import { GoogleSignInService } from '../../../../core/services/google-sign-in';
+import { ToastService } from '../../../../core/services/toast.service';
+import { SignupRequest, LoginResponse } from '../../../../core/models/user.model';
 
 @Component({
   selector: 'app-signup',
@@ -28,41 +30,51 @@ export class SignupComponent {
   showPassword = false;
   showConfirmPassword = false;
 
-errorMessage = '';
-  successMessage = '';
+  googleAvailable = false;
+  googleLoading = false;
 
   constructor(
     private auth: AuthService,
-    private router: Router
+    private google: GoogleSignInService,
+    private router: Router,
+    private toast: ToastService
   ) {}
 
-  signup(): void {
+  ngAfterViewInit(): void {
+    this.google.getClientId().subscribe((clientId) => {
+      if (!clientId) {
+        return;
+      }
+      this.googleAvailable = true;
+      this.google.renderButton('google-signup-button', clientId, (credential) => {
+        this.onGoogleCredential(credential);
+      });
+    });
+  }
 
-    // Clear previous messages
-    this.errorMessage = '';
-    this.successMessage = '';
+  signup(): void {
 
     // -------------------------
     // Validate account details
     // -------------------------
 
     if (!this.fullName.trim()) {
-      this.errorMessage = 'Please enter your full name.';
+      this.toast.warning('Please enter your full name.');
       return;
     }
 
     if (!this.email.trim()) {
-      this.errorMessage = 'Please enter your email address.';
+      this.toast.warning('Please enter your email address.');
       return;
     }
 
     if (this.password.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters.';
+      this.toast.warning('Password must be at least 6 characters.');
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.errorMessage = 'Passwords do not match.';
+      this.toast.warning('Passwords do not match.');
       return;
     }
 
@@ -71,17 +83,17 @@ errorMessage = '';
     // -------------------------
 
     if (this.age === null || this.age < 10 || this.age > 100) {
-      this.errorMessage = 'Please enter a valid age.';
+      this.toast.warning('Please enter a valid age.');
       return;
     }
 
     if (!this.educationLevel) {
-      this.errorMessage = 'Please select your education level.';
+      this.toast.warning('Please select your education level.');
       return;
     }
 
     if (this.interests.length === 0) {
-      this.errorMessage = 'Please select at least one interest.';
+      this.toast.warning('Please select at least one interest.');
       return;
     }
 
@@ -99,14 +111,6 @@ errorMessage = '';
       interests: this.interests,
     };
 
-    console.log('Signup request:', {
-      fullName: signupData.fullName,
-      email: signupData.email,
-      age: signupData.age,
-      educationLevel: signupData.educationLevel,
-      interests: signupData.interests,
-    });
-
     // -------------------------
     // Send request to FastAPI
     // -------------------------
@@ -118,8 +122,9 @@ errorMessage = '';
 
           console.log('Signup successful:', response);
 
-          this.successMessage =
-            'Account created successfully! Redirecting to login...';
+          this.toast.success(
+            'Account created successfully! Redirecting to login...'
+          );
 
           setTimeout(() => {
             this.router.navigate(['/login']);
@@ -130,12 +135,41 @@ errorMessage = '';
 
           console.error('Signup failed:', error);
 
-          this.errorMessage =
+          this.toast.error(
             error.error?.detail ||
-            'Unable to create account. Please try again.';
+            'Unable to create account. Please try again.'
+          );
         },
       });
   }
+ onGoogleCredential(credential: string): void {
+    this.googleLoading = true;
+
+    this.auth.googleLogin(credential)
+      .subscribe({
+        next: (response: LoginResponse) => {
+          this.googleLoading = false;
+
+          this.auth.persistSession(
+            response.user,
+            response.access_token,
+            response.refresh_token
+          );
+
+          this.toast.success(`Welcome, ${response.user.fullName}!`);
+
+          this.router.navigate(['/home']);
+        },
+        error: (error) => {
+          this.googleLoading = false;
+          this.toast.error(
+            error.error?.detail ||
+            'Unable to sign up with Google. Please try again.'
+          );
+        },
+      });
+  }
+
  toggleInterest(interest: string, event: Event): void {
   const checkbox = event.target as HTMLInputElement;
 

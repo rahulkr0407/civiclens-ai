@@ -3,15 +3,18 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SearchService } from '../../../../core/services/search';
+import { AiService } from '../../../../core/services/ai';
 import {
-  AiService,
   ChatMessage,
   ExplainRequest,
   ExplainResponse,
-} from '../../../../core/services/ai';
+} from '../../../../core/models/ai.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { HistoryService } from '../../../../core/services/history.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { Topic } from '../../../../core/models/topic';
+import { LoadingSpinner } from '../../../../shared/components/loading-spinner/loading-spinner';
+import { Chip } from '../../../../shared/components/chip/chip';
 
 interface LearnerProfile {
   age: number;
@@ -24,7 +27,7 @@ const LANGUAGE_OPTIONS = ['English', 'Hindi', 'Hinglish'] as const;
 @Component({
   selector: 'app-topic-details',
   standalone: true,
-  imports: [FormsModule, NgClass],
+  imports: [FormsModule, NgClass, LoadingSpinner, Chip],
   templateUrl: './topic-details.html',
 })
 export class TopicDetailsComponent implements OnInit {
@@ -36,7 +39,6 @@ export class TopicDetailsComponent implements OnInit {
   errorMessage = '';
 
   aiLoading = false;
-  aiError = '';
   aiResult: ExplainResponse | null = null;
 
   language: (typeof LANGUAGE_OPTIONS)[number] = 'English';
@@ -45,11 +47,9 @@ export class TopicDetailsComponent implements OnInit {
   chatMessages: ChatMessage[] = [];
   chatInput = '';
   chatLoading = false;
-  chatError = '';
 
   savedExplain = false;
   savedChat = false;
-  saveMessage = '';
 
   topicSaved = false;
   topicSaveLoading = false;
@@ -60,7 +60,8 @@ export class TopicDetailsComponent implements OnInit {
     private searchService: SearchService,
     private aiService: AiService,
     private auth: AuthService,
-    private historyService: HistoryService
+    private historyService: HistoryService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -115,7 +116,6 @@ export class TopicDetailsComponent implements OnInit {
     }
 
     this.aiLoading = true;
-    this.aiError = '';
     this.aiResult = null;
     this.savedExplain = false;
 
@@ -136,7 +136,7 @@ export class TopicDetailsComponent implements OnInit {
       },
       error: (error) => {
         this.aiLoading = false;
-        this.aiError = this.mapAiError(error);
+        this.toast.error(this.mapAiError(error));
       },
     });
   }
@@ -152,7 +152,6 @@ export class TopicDetailsComponent implements OnInit {
     this.chatMessages = [...this.chatMessages, userMessage];
     this.chatInput = '';
     this.chatLoading = true;
-    this.chatError = '';
 
     this.aiService
       .chat({
@@ -170,14 +169,13 @@ export class TopicDetailsComponent implements OnInit {
         },
         error: (error) => {
           this.chatLoading = false;
-          this.chatError = this.mapAiError(error);
+          this.toast.error(this.mapAiError(error));
         },
       });
   }
 
   clearChat(): void {
     this.chatMessages = [];
-    this.chatError = '';
     this.savedChat = false;
   }
 
@@ -190,8 +188,6 @@ export class TopicDetailsComponent implements OnInit {
       return;
     }
 
-    this.saveMessage = '';
-
     this.historyService
       .save({
         type: 'explain',
@@ -203,10 +199,10 @@ export class TopicDetailsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.savedExplain = true;
-          this.saveMessage = 'Explanation saved to your dashboard.';
+          this.toast.success('Explanation saved to your dashboard.');
         },
         error: (error) => {
-          this.saveMessage = this.mapSaveError(error);
+          this.toast.error(this.mapSaveError(error));
         },
       });
   }
@@ -226,8 +222,6 @@ export class TopicDetailsComponent implements OnInit {
       return;
     }
 
-    this.saveMessage = '';
-
     this.historyService
       .save({
         type: 'chat',
@@ -242,10 +236,10 @@ export class TopicDetailsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.savedChat = true;
-          this.saveMessage = 'Conversation saved to your dashboard.';
+          this.toast.success('Conversation saved to your dashboard.');
         },
         error: (error) => {
-          this.saveMessage = this.mapSaveError(error);
+          this.toast.error(this.mapSaveError(error));
         },
       });
   }
@@ -277,18 +271,17 @@ export class TopicDetailsComponent implements OnInit {
     }
 
     this.topicSaveLoading = true;
-    this.saveMessage = '';
 
     if (this.topicSaved) {
       this.historyService.deleteTopic(this.topic.id).subscribe({
         next: () => {
           this.topicSaved = false;
           this.topicSaveLoading = false;
-          this.saveMessage = 'Topic removed from your saved list.';
+          this.toast.success('Topic removed from your saved list.');
         },
         error: (error) => {
           this.topicSaveLoading = false;
-          this.saveMessage = this.mapSaveError(error);
+          this.toast.error(this.mapSaveError(error));
         },
       });
     } else {
@@ -304,11 +297,11 @@ export class TopicDetailsComponent implements OnInit {
           next: () => {
             this.topicSaved = true;
             this.topicSaveLoading = false;
-            this.saveMessage = 'Topic saved for later.';
+            this.toast.success('Topic saved for later.');
           },
           error: (error) => {
             this.topicSaveLoading = false;
-            this.saveMessage = this.mapSaveError(error);
+            this.toast.error(this.mapSaveError(error));
           },
         });
     }
@@ -318,8 +311,9 @@ export class TopicDetailsComponent implements OnInit {
     const loggedIn = this.auth.isLoggedIn();
 
     if (!loggedIn) {
-      this.saveMessage =
-        'Please log in to save items to your dashboard.';
+      this.toast.warning(
+        'Please log in to save items to your dashboard.'
+      );
     }
 
     return loggedIn;

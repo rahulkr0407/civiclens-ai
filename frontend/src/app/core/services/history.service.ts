@@ -2,57 +2,17 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-config';
-import { ChatMessage, ExplainResponse } from './ai';
-
-export type SavedHistoryType = 'explain' | 'chat';
-
-export interface SavedChatContent {
-  messages: ChatMessage[];
-  reply: string;
-}
-
-export interface SavedHistoryItem {
-  id: string;
-  type: SavedHistoryType;
-  topicId: string;
-  topicTitle: string;
-  language: string;
-  content: ExplainResponse | SavedChatContent;
-  savedAt: string;
-}
-
-export interface HistoryResponse {
-  items: SavedHistoryItem[];
-}
-
-export interface SaveHistoryRequest {
-  type: SavedHistoryType;
-  topicId: string;
-  topicTitle: string;
-  language: string;
-  content: ExplainResponse | SavedChatContent;
-}
-
-export interface SavedTopic {
-  topicId: string;
-  topicTitle: string;
-  category: string;
-  readTime: string;
-  summary: string;
-  savedAt: string;
-}
-
-export interface SavedTopicsResponse {
-  items: SavedTopic[];
-}
-
-export interface SaveTopicRequest {
-  topicId: string;
-  topicTitle: string;
-  category: string;
-  readTime: string;
-  summary: string;
-}
+import { ChatMessage, ExplainResponse } from '../models/ai.model';
+import {
+  HistoryResponse,
+  SaveHistoryRequest,
+  SaveTopicRequest,
+  SavedChatContent,
+  SavedHistoryItem,
+  SavedTopic,
+  SavedTopicsResponse,
+  SavedHistoryType,
+} from '../models/history.model';
 
 @Injectable({
   providedIn: 'root',

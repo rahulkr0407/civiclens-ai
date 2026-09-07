@@ -140,7 +140,7 @@
               Password
             </label>
 
-            <a href="#" class="forgot">
+            <a routerLink="/forgot-password" class="forgot">
               Forgot password?
             </a>
 
@@ -202,22 +202,23 @@
         </button>
 
 
-        <!-- Divider -->
-        <div class="divider">
-          <span></span>
-          <p>or continue with</p>
-          <span></span>
-        </div>
+        @if (googleAvailable) {
+          <!-- Divider -->
+          <div class="divider">
+            <span></span>
+            <p>or continue with</p>
+            <span></span>
+          </div>
 
+          <!-- Google -->
+          <div class="google-wrapper">
+            <div id="google-login-button"></div>
 
-        <!-- Google -->
-        <button
-          type="button"
-          class="google-button"
-        >
-          <span class="google-icon">G</span>
-          <span>Continue with Google</span>
-        </button>
+            @if (googleLoading) {
+              <p class="google-status">Signing you in…</p>
+            }
+          </div>
+        }
 
 
         <!-- Signup -->

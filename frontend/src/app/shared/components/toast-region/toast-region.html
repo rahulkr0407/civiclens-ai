@@ -1,0 +1,33 @@
+@if (toasts.length > 0) {
+  <div class="toast-region" role="region" aria-live="polite">
+    @for (toast of toasts; track toast.id) {
+      <div [class]="toastClass(toast.type)" role="alert">
+        <span class="toast__icon" aria-hidden="true">
+          @switch (toast.type) {
+            @case ('success') {
+              ✓
+            }
+            @case ('error') {
+              ✕
+            }
+            @case ('warning') {
+              ⚠
+            }
+            @default {
+              ℹ
+            }
+          }
+        </span>
+        <p class="toast__message">{{ toast.message }}</p>
+        <button
+          type="button"
+          class="toast__close"
+          (click)="dismiss(toast.id)"
+          aria-label="Dismiss notification"
+        >
+          ×
+        </button>
+      </div>
+    }
+  </div>
+}

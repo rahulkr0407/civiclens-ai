@@ -597,6 +597,19 @@ form {
   color: #4285f4;
 }
 
+.google-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.google-status {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0;
+}
+
 .login-text {
   margin-top: 25px;
 

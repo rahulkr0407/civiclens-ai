@@ -36,11 +36,7 @@
     <!-- Header -->
     <div class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div class="flex flex-wrap items-center gap-2">
-        <span
-          class="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-indigo-700"
-        >
-          {{ tracker.type }}
-        </span>
+        <app-chip [label]="tracker.type" tone="indigo" [uppercase]="true" />
         <span class="text-xs text-slate-400">{{ tracker.category }}</span>
         <span
           class="ml-auto rounded-full px-3 py-1 text-xs font-semibold"
@@ -49,11 +45,7 @@
           {{ tracker.status }}
         </span>
         @if (isStale(tracker.lastUpdated)) {
-          <span
-            class="w-full rounded-full bg-red-50 px-3 py-1 text-center text-xs font-semibold text-red-600 sm:w-auto"
-          >
-            May be outdated
-          </span>
+          <app-chip label="May be outdated" tone="red" />
         }
       </div>
 
@@ -159,20 +151,12 @@
             class="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-blue-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 sm:w-auto"
           >
             @if (aiLoading) {
-              <span
-                class="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
-              ></span>
+              <app-loading-spinner size="sm" />
               <span>Explaining…</span>
             } @else {
               <span>✨ Explain with AI</span>
             }
           </button>
-
-          @if (aiError) {
-            <p class="mt-3 max-w-xs text-sm font-medium leading-6 text-red-100">
-              {{ aiError }}
-            </p>
-          }
         </div>
       </div>
     </section>
@@ -205,7 +189,7 @@
               class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               @if (aiLoading) {
-                <span class="mr-1 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-400 border-t-transparent align-middle"></span>
+                <span class="mr-1 inline-block align-middle"><app-loading-spinner tone="muted" /></span>
               }
               Regenerate
             </button>
@@ -286,13 +270,6 @@
       </section>
     }
 
-    <!-- Save status -->
-    @if (saveMessage) {
-      <p class="mt-4 rounded-xl px-4 py-3 text-sm font-medium text-blue-600">
-        {{ saveMessage }}
-      </p>
-    }
-
     <!-- AI Follow-up Chat -->
     <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <div>
@@ -321,9 +298,7 @@
         @if (chatLoading) {
           <div class="flex">
             <div class="flex items-center gap-2 rounded-2xl bg-slate-100 px-5 py-3.5">
-              <span
-                class="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
-              ></span>
+              <app-loading-spinner size="xs" />
               <span class="text-sm font-medium text-slate-500">
                 CivicLens AI is thinking…
               </span>
@@ -331,12 +306,6 @@
           </div>
         }
       </div>
-
-      @if (chatError) {
-        <p class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-          {{ chatError }}
-        </p>
-      }
 
       <div class="mt-5 flex gap-3">
         <input
